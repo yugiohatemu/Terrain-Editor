@@ -4,7 +4,9 @@
 #include <GL/glu.h>
 #include "hm.hpp"
 #include <stdio.h>
-//Initialize points, call list and etc
+
+
+
 GLuint texture[1];
 
 HM::HM(){
@@ -19,43 +21,39 @@ HM::HM(){
 			height_map[i+offset][j+offset] = p;
 		}
 	}
-	//load the texture map
-	/*bool load_texture =  m_texture.loadPng("terrain.png");
-	if(!load_texture){
-		std::cerr<<"Fail to load texture"<<std::endl;
-	}*/
-
+	
 	
 }
 
 void HM::set_texture(){
-	glEnable(GL_TEXTURE_2D);
+	/*glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
+	//glEnable(GL_COLOR_MATERIAL);
+	glShadeModel(GL_SMOOTH);  
 	glGenTextures(1, &texture[0]);
 	//std::cerr<<"Texture name = "<<texture[0]<<std::endl;
 	glBindTexture(GL_TEXTURE_2D, texture[0]); 
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
-	
-//Lets try our custom simple load image file ,hope it works
 
-	int width = 256; 
-	int height =  256;
+	int width =64; 
+	int height =64;
+	//sizeof(unsigned char) 
 	unsigned char * data = (unsigned char *)malloc( width * height * 3 );
 	FILE * file = fopen( "terrain.png", "rb" );
 	fread( data, width * height * 3, 1, file );
 	fclose( file );
 
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,width,height, 0,GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	//glTexImage2D(GL_TEXTURE_2D, 0, 3,m_texture.width(),m_texture.height(),0,GL_BGR, GL_UNSIGNED_BYTE, m_texture.charData());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,width,height, 0,GL_RGB, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	
-	//TODO:Use this after we make sure it is 
-	//free(data)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); //For testing ppurpose
+	// build our texture MIP maps
+	//gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGB, width,height, GL_RGB, GL_UNSIGNED_BYTE, data );
+
+	//Free the malloc
+	free(data);*/
 }
 
 
@@ -90,20 +88,15 @@ void HM::make_quad_list(){
 	    
 	//Bind texture
 	
-	glBindTexture(GL_TEXTURE_2D, texture[0]); 
-	//std::cerr<<"Texture name = "<<texture[0]<<std::endl;
-	//std::cerr<<(glIsTexture(texture[0])==GL_FALSE)<<std::endl;
-	//std::cerr<<"ERROR"<< (glGetError()==GL_NO_ERROR)<<std::endl;
-
+	//glBindTexture(GL_TEXTURE_2D, texture[0]); 
 
 	//Try bind material color
 	float shineBuffer[1] = {20};
 	float specularBuffer[3] = {1,1,1};
 	float diffuseBuffer[3] = {0,1,0};
-	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
-
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	//Actual drawing
 	glBegin(GL_TRIANGLES); 
 	
@@ -119,19 +112,18 @@ void HM::make_quad_list(){
 			glNormal3d(normal[0],normal[1],normal[2]);	
 		//Use this simple normal for now
 
-		//Texture mapping, for every pixel we assign them with a texture point
-			glTexCoord2d(0, 0);
+			//glTexCoord2d(0, 0);
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			glTexCoord2d(1, 0);
+			//glTexCoord2d(1, 0);
 			glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
-			glTexCoord2d(1, 1);
+			//glTexCoord2d(1, 1);
 			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
 
-			glTexCoord2d(0, 0);
+			//glTexCoord2d(0, 0);
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			glTexCoord2d(0, 1);
+			//glTexCoord2d(0, 1);
 			glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
-			glTexCoord2d(1, 1);
+			//glTexCoord2d(1, 1);
 			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
 			
 		}
@@ -207,4 +199,29 @@ void HM::make_circle(){
 
 }
 
+//std::cerr<<"Texture name = "<<texture[0]<<std::endl;
+	//std::cerr<<(glIsTexture(texture[0])==GL_FALSE)<<std::endl;
+	//std::cerr<<"ERROR"<< (glGetError()==GL_NO_ERROR)<<std::endl;
+//load the texture map
+	/*bool load_texture =  m_texture.loadPng("terrain.png");
+	if(!load_texture){
+		std::cerr<<"Fail to load texture"<<std::endl;
+	}*/
+		//Texture mapping, for every pixel we assign them with a texture point
+			
+//Now I know the reason , lets try to load the terrain png
+			/*glTexCoord2d((double)i/4, (double)j/4);
+			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
+			glTexCoord2d((double)(i+1)/4, (double)j/4);
+			glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
+			glTexCoord2d((double)(i+1)/4, (double)(j+1)/4);
+			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
 
+			glTexCoord2d((double)i/4, (double)j/4);
+			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
+			glTexCoord2d((double)i/4, (double)(j+1)/4);
+			glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
+			glTexCoord2d((double)(i+1)/4, (double)(j+1)/4);
+			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
+
+*/

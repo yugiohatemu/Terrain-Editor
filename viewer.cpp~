@@ -223,6 +223,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	
 	glEnable(GL_DEPTH_TEST);
 	
+
 	if(options[Back_Face]&&!options[Front_Face]){
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_CULL_FACE);
@@ -243,11 +244,13 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glPushMatrix();
 	
 	glLoadIdentity();
-	glTranslated(0,0,-40);
-	glRotated(-60,1,0,0);
-	
-	m_map.draw();
-
+	glTranslated(0,-1,-10);
+	//glRotated(-60,1,0,0);
+	 glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+  glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 1);
+	//m_map.draw();
+	glCallList(1);
 	glPopMatrix();
 
   gldrawable->swap_buffers();
