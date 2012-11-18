@@ -91,8 +91,8 @@ void HM::make_quad_list(){
 	//Bind texture
 	
 	glBindTexture(GL_TEXTURE_2D, texture[0]); 
-	//std::cerr<<"Texture name = "<<texture[0]<<std::endl;
-	//std::cerr<<(glIsTexture(texture[0])==GL_FALSE)<<std::endl;
+	std::cerr<<"Texture name = "<<texture[0]<<std::endl;
+	std::cerr<<(glIsTexture(texture[0])==GL_FALSE)<<std::endl;
 	//std::cerr<<"ERROR"<< (glGetError()==GL_NO_ERROR)<<std::endl;
 
 

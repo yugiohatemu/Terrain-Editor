@@ -5,7 +5,7 @@
 #define CS488_HM_HPP
 
 #include "algebra.hpp"
-//#include "image.hpp"
+#include "image.hpp"
 
 #define OBJ_PLANE_GRID 2
 #define OBJ_PLANE_QUAD 3
@@ -23,7 +23,7 @@ public:
 	
 private:
 	Point3D height_map[MAP_BOUND][MAP_BOUND];
-	//Image m_texture;
+	Image m_texture;
 	
 	int make_rand(int range);
 	void make_grid_list();
