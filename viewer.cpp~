@@ -6,6 +6,7 @@
 #include <GL/glu.h>
 
 
+
 double pos[2]  = {0};
 bool mouse_pressed[3] ={false,false,false};
 int hit_name, hit_count = 0;
@@ -14,7 +15,7 @@ double trans[3] = {0};
 Matrix4x4 m_rotation;
 bool clear_redo_stack = false;
 
-
+unsigned int test;
 
 Viewer::Viewer()
 {
@@ -164,18 +165,20 @@ void Viewer::on_realize()
 	
 	//so the lightint is here, damn it...
 	GLfloat ambient[] = { 0.0, 0.0, 0.0, 1.0 };  
-   	GLfloat diffuse[] = { 1.0, 1.0, 1.0, 1.0 };  
-   	GLfloat position[] = {5, 10, -10, 0.0 };  
+	  GLfloat diffuse[] = { 1.0, 1.0, 1.0, 1.0 };  
+	  GLfloat position[] = {5, 10, -10, 0.0 };  
   		
-   glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);  
-   glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);  
-   glLightfv(GL_LIGHT0, GL_POSITION, position);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);  
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);  
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHTING);  
 	glEnable(GL_LIGHT0);  
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+
 	gldrawable->gl_end();
 
 	//TODO:Move later
@@ -191,8 +194,39 @@ void Viewer::on_realize()
 	gluSphere( quadric , 1 , 20 , 20 );  
 	glEndList();
 	
+	//TODO:recover
 	//Generate a randome map
 	m_map.randomize();
+
+	//setup water and reflection texture
+	reflection.set_texture("reflection.jpg",GL_RGB,256 );
+	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
+
+	reflection.load_texture();
+	alpha.load_texture();	
+
+	unsigned char total_texture[4 * 256 * 256];
+	unsigned char * caustic_texture = reflection.get_data();
+	unsigned char * alpha_texture = alpha.get_data();
+	glGenTextures (1, &test);
+	
+	for (int i = 0; i < 256 * 256; i++){
+      total_texture[4 * i] = caustic_texture[3 * i];
+      total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
+      total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
+      total_texture[4 * i + 3] = alpha_texture[i];
+    }
+	glBindTexture (GL_TEXTURE_2D, test);
+	gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glEnable (GL_TEXTURE_GEN_S);
+	glEnable (GL_TEXTURE_GEN_T);
+	glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+
 }
 
 
@@ -223,7 +257,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	
 	glEnable(GL_DEPTH_TEST);
 	
-
 	if(options[Back_Face]&&!options[Front_Face]){
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_CULL_FACE);
@@ -244,17 +277,44 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glPushMatrix();
 	
 	glLoadIdentity();
-	glTranslated(0,-1,-10);
-	//glRotated(-60,1,0,0);
-	 glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-  glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 1);
-	//m_map.draw();
-	glCallList(1);
+	glTranslated(0,0,-40);
+	glRotated(-60,1,0,0);
+	
+//Terrain coment out for now
+	//glBindTexture(GL_TEXTURE_2D, 0); //use a invalid to unbind?
+	glPushMatrix();
+	float shineBuffer[1] = {20};
+	float specularBuffer[4] = {1,1,1,0.2};
+	float diffuseBuffer[4] = {0,0.5,0,0.2};
+	//Need to unbind the texture ...but this looks good for underwater effect
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
+	
+	m_map.draw();
+	glPopMatrix();
+	
+//Water
+	glPushMatrix();
+	glTranslated(0,0, 5);
+	/*float shineBuffer[1] = {60};
+	float specularBuffer[3] = {1,1,1};
+	float diffuseBuffer[3] = {1,1,1};*/
+	
+	diffuseBuffer[0] = 1; diffuseBuffer[1] = 1;diffuseBuffer[2] = 1; diffuseBuffer[3] = 0;shineBuffer[0] = 60;
+ 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
+	//reflection.apply_texture();
+	glBindTexture(GL_TEXTURE_2D, test);
+	m_water.draw();
 	glPopMatrix();
 
-  gldrawable->swap_buffers();
-  gldrawable->gl_end();
+//Finish drawing
+
+	glPopMatrix();
+	gldrawable->swap_buffers();
+	gldrawable->gl_end();
 
   return true;
 }

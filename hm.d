@@ -96,6 +96,6 @@ hm.o hm.d : hm.cpp /usr/include/c++/4.6/iostream \
  /usr/include/c++/4.6/bits/stl_heap.h \
  /usr/include/c++/4.6/bits/stl_tempbuf.h \
  /usr/include/c++/4.6/bits/stl_construct.h /usr/include/c++/4.6/cmath \
- texture.hpp /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/libio.h /usr/include/_G_config.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
  /usr/include/x86_64-linux-gnu/bits/sys_errlist.h

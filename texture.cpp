@@ -8,19 +8,34 @@
 #include <iostream>
 
 Texture::Texture(){
+	m_id = 0;
+	m_format = GL_RGB;
+}
 
+void Texture::set_texture(char * name, int format,unsigned int size){
+	m_name = name;
+	m_format =format;
+	m_size = size;
 }
 
 
 Texture::~Texture(){
 }
 
+unsigned char* Texture::get_data(){
+	return m_data;
+}
 
 void Texture::bind_texture(){
 	//Bind the texture
 	glGenTextures (1, &m_id);
 	glBindTexture (GL_TEXTURE_2D, m_id);
-	m_data = (unsigned char *) malloc(m_size * m_size * 3);
+	/*if(m_format == GL_RGB){
+		m_data = (unsigned char *) malloc(m_size * m_size * 3);
+	}else if(m_format == GL_ALPHA){
+		m_data = (unsigned char *) malloc(m_size * m_size);
+	}*/
+	
 	load_texture();
    	gluBuild2DMipmaps (GL_TEXTURE_2D, m_format,m_size, m_size, m_format,GL_UNSIGNED_BYTE, m_data);
 	
@@ -29,18 +44,26 @@ void Texture::bind_texture(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//Replace format
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+	//Free data
 	free(m_data);
 }
 
-void apply_texture(){
+void Texture::apply_texture(){
 	glBindTexture (GL_TEXTURE_2D, m_id);
 	
 }
 
 //http://www.lousodrome.net/opengl/ function for loading jpeg
 void Texture::load_texture (){
-		
+		if(m_format == GL_RGB){
+		m_data = (unsigned char *) malloc(m_size * m_size * 3);
+	}else if(m_format == GL_ALPHA){
+		m_data = (unsigned char *) malloc(m_size * m_size);
+	}		
+
 		FILE *fd;
 		struct jpeg_decompress_struct cinfo;
 		struct jpeg_error_mgr jerr;

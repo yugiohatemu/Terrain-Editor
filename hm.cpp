@@ -5,8 +5,6 @@
 #include "hm.hpp"
 #include <stdio.h>
 
-
-
 GLuint texture[1];
 
 HM::HM(){
@@ -21,39 +19,14 @@ HM::HM(){
 			height_map[i+offset][j+offset] = p;
 		}
 	}
+
+	//Initializing standard normal
 	
-	
-}
-
-void HM::set_texture(){
-	/*glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	//glEnable(GL_COLOR_MATERIAL);
-	glShadeModel(GL_SMOOTH);  
-	glGenTextures(1, &texture[0]);
-	//std::cerr<<"Texture name = "<<texture[0]<<std::endl;
-	glBindTexture(GL_TEXTURE_2D, texture[0]); 
-
-	int width =64; 
-	int height =64;
-	//sizeof(unsigned char) 
-	unsigned char * data = (unsigned char *)malloc( width * height * 3 );
-	FILE * file = fopen( "terrain.png", "rb" );
-	fread( data, width * height * 3, 1, file );
-	fclose( file );
-
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,width,height, 0,GL_RGB, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); //For testing ppurpose
-	// build our texture MIP maps
-	//gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGB, width,height, GL_RGB, GL_UNSIGNED_BYTE, data );
-
-	//Free the malloc
-	free(data);*/
+	for(int i =0;i<MAP_BOUND-1;i+=1){ 
+		for(int j = 0;j<MAP_BOUND-1;j+=1){
+			normal_map[i][j][2] = 1;
+		}
+	}
 }
 
 
@@ -63,82 +36,167 @@ HM::~HM(){
 
 //Draw height map
 void HM::draw(){
-glColor3d(1,0,0);
+	draw_quad_list();
+	
 	//glCallList(OBJ_PLANE_GRID);
-	glCallList(OBJ_PLANE_QUAD);
+	//glCallList(OBJ_PLANE_QUAD);
+}
+
+void HM::water_test(){
+	//Manipulate the normal of water surface
+
+	for (j = 0; j < RESOLUTION; j++){
+		for (i = 0; i <= RESOLUTION; i++){
+			indice = 6 * (i + j * (RESOLUTION + 1));
+
+			v1x = surface[indice + 3];
+			v1y = surface[indice + 4];
+			v1z = surface[indice + 5];
+
+			v2x = v1x;
+			v2y = surface[indice + 1];
+			v2z = surface[indice + 2];
+
+			if (i < RESOLUTION){
+			v3x = surface[indice + 9];
+			v3y = surface[indice + 10];
+			v3z = v1z;
+			}else{
+				v3x = xn;
+				v3y = z (xn, v1z, t);
+				v3z = v1z;
+			}
+
+			vax =  v2x - v1x;
+			vay =  v2y - v1y;
+			vaz =  v2z - v1z;
+
+			vbx = v3x - v1x;
+			vby = v3y - v1y;
+			vbz = v3z - v1z;
+
+			nx = (vby * vaz) - (vbz * vay);
+			ny = (vbz * vax) - (vbx * vaz);
+			nz = (vbx * vay) - (vby * vax);
+
+			l = sqrtf (nx * nx + ny * ny + nz * nz);
+			if (l != 0){
+				l = 1 / l;
+				normal[indice + 3] = nx * l;
+				normal[indice + 4] = ny * l;
+				normal[indice + 5] = nz * l;
+			}else{
+				normal[indice + 3] = 0;
+				normal[indice + 4] = 1;
+				normal[indice + 5] = 0;
+			}
+
+
+			if (j != 0){
+			// Values were computed during the previous loop 
+				preindice = 6 * (i + (j - 1) * (RESOLUTION + 1));
+				normal[indice] = normal[preindice + 3];
+				normal[indice + 1] = normal[preindice + 4];
+				normal[indice + 2] = normal[preindice + 5];
+			}
+			else{
+				// 	    v1x = v1x; 
+				v1y = z (v1x, (j - 1) * delta - 1, t);
+				v1z = (j - 1) * delta - 1;
+
+				// 	    v3x = v3x; 
+				v3y = z (v3x, v2z, t);
+				v3z = v2z;
+
+				vax = v1x - v2x;
+				vay = v1y - v2y;
+				vaz = v1z - v2z;
+
+				vbx = v3x - v2x;
+				vby = v3y - v2y;
+				vbz = v3z - v2z;
+
+				nx = (vby * vaz) - (vbz * vay);
+				ny = (vbz * vax) - (vbx * vaz);
+				nz = (vbx * vay) - (vby * vax);
+
+				l = sqrtf (nx * nx + ny * ny + nz * nz);
+				if (l != 0){
+					l = 1 / l;
+					normal[indice] = nx * l;
+					normal[indice + 1] = ny * l;
+					normal[indice + 2] = nz * l;
+				}else{
+					normal[indice] = 0;
+					normal[indice + 1] = 1;
+					normal[indice + 2] = 0;
+				}
+			}
+		}
+	}
 }
 
 //Generate a random map
 void HM::randomize(){
 	//TODO:disp should decrease
-
-	//TEST: 10 times iteration
+	
 	for(int i = 0;i<50;i+=1){
 		make_circle();
 	}
-	//The call list seems to be linked with unchange points
-	set_texture();
-	make_grid_list();
-	make_quad_list();
+	
+	//Calculate the normal
+	for(int i =0;i<MAP_BOUND-1;i+=1){ 
+		for(int j = 0;j<MAP_BOUND-1;j+=1){
+			Vector3D x =  height_map[i+1][j]-height_map[i][j] ;
+			Vector3D y =  height_map[i+1][j+1] - height_map[i+1][j];
+			Vector3D n = x.cross(y);
+			n.normalize();
+			normal_map[i][j] = n;
+			
+			//TODO:we may also take consideration of the normal on the other plane	
+		}
+	}
 }
 
 //Draw the map in planar mode
-void HM::make_quad_list(){
-	glNewList(OBJ_PLANE_QUAD, GL_COMPILE);
+void HM::draw_quad_list(){
+	//glNewList(OBJ_PLANE_QUAD, GL_COMPILE);
 	    
-	//Bind texture
-	
-	//glBindTexture(GL_TEXTURE_2D, texture[0]); 
-
-	//Try bind material color
-	float shineBuffer[1] = {20};
-	float specularBuffer[3] = {1,1,1};
-	float diffuseBuffer[3] = {0,1,0};
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
-	//Actual drawing
 	glBegin(GL_TRIANGLES); 
-	
 	
 	for(int i =0;i<MAP_BOUND-1;i+=1){ 
 		for(int j = 0;j<MAP_BOUND-1;j+=1){
-		//so basicallly we just need to calculate the normal for each small face?
-		//Try adding normal
-			Vector3D x =  height_map[i+1][j]-height_map[i][j] ;
-			Vector3D y =  height_map[i+1][j+1] - height_map[i+1][j];
-			Vector3D normal = x.cross(y);
-			normal.normalize();
-			glNormal3d(normal[0],normal[1],normal[2]);	
-		//Use this simple normal for now
-
-			//glTexCoord2d(0, 0);
+			//Normal for lighting
+			Vector3D n = normal_map[i][j];
+			glNormal3d(n[0],n[1],n[2]);
+		
+			glTexCoord2d(0, 0);
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			//glTexCoord2d(1, 0);
+			glTexCoord2d(1, 0);
 			glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
-			//glTexCoord2d(1, 1);
+			glTexCoord2d(1, 1);
 			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
 
-			//glTexCoord2d(0, 0);
+			glTexCoord2d(0, 0);
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			//glTexCoord2d(0, 1);
+			glTexCoord2d(0, 1);
 			glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
-			//glTexCoord2d(1, 1);
+			glTexCoord2d(1, 1);
 			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
 			
 		}
 	}
 
 	glEnd();	
-    glEndList();
+   // glEndList();
 }
 
 //Private functions
 
 //Draw the plane in wire frame mode
-void HM::make_grid_list(){
+void HM::draw_grid_list(){
 	
-	glNewList(OBJ_PLANE_GRID, GL_COMPILE);
+	//glNewList(OBJ_PLANE_GRID, GL_COMPILE);
 	glBegin(GL_LINES);
 	
 	//vertical line
@@ -166,7 +224,7 @@ void HM::make_grid_list(){
 	}
 
 	glEnd();	
-    glEndList();
+    //glEndList();
 }
 
 //Return a random in from 0 to (range-1)
@@ -199,29 +257,27 @@ void HM::make_circle(){
 
 }
 
-//std::cerr<<"Texture name = "<<texture[0]<<std::endl;
-	//std::cerr<<(glIsTexture(texture[0])==GL_FALSE)<<std::endl;
-	//std::cerr<<"ERROR"<< (glGetError()==GL_NO_ERROR)<<std::endl;
-//load the texture map
-	/*bool load_texture =  m_texture.loadPng("terrain.png");
-	if(!load_texture){
-		std::cerr<<"Fail to load texture"<<std::endl;
+/*
+	//Update in a loop manner
+	for (j = 0; j < RESOLUTION; j++){
+		y = (j + 1) * delta - 1;
+		for (i = 0; i <= RESOLUTION; i++){
+			indice = 6 * (i + j * (RESOLUTION + 1));
+
+			x = i * delta - 1;
+			surface[indice + 3] = x;
+			surface[indice + 4] = z (x, y, t);
+			surface[indice + 5] = y;
+			if (j != 0){
+			// Values were computed during the previous loop 
+				preindice = 6 * (i + (j - 1) * (RESOLUTION + 1));
+				surface[indice] = surface[preindice + 3];
+				surface[indice + 1] = surface[preindice + 4];
+				surface[indice + 2] = surface[preindice + 5];
+			}else{
+				surface[indice] = x;
+				surface[indice + 1] = z (x, -1, t);
+				surface[indice + 2] = -1;
+			}
+		}
 	}*/
-		//Texture mapping, for every pixel we assign them with a texture point
-			
-//Now I know the reason , lets try to load the terrain png
-			/*glTexCoord2d((double)i/4, (double)j/4);
-			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			glTexCoord2d((double)(i+1)/4, (double)j/4);
-			glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
-			glTexCoord2d((double)(i+1)/4, (double)(j+1)/4);
-			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
-
-			glTexCoord2d((double)i/4, (double)j/4);
-			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			glTexCoord2d((double)i/4, (double)(j+1)/4);
-			glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
-			glTexCoord2d((double)(i+1)/4, (double)(j+1)/4);
-			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
-
-*/

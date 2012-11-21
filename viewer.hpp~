@@ -110,8 +110,8 @@ private:
 	bool options[4];
 	HM m_map;
 	HM m_water;
+	Texture water;
 	Texture reflection;
-	Texture alpha;
 	//redo and undo stack
 	std::stack<joint_stack> undo_stack;
 	std::stack<joint_stack> redo_stack;

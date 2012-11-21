@@ -7,10 +7,15 @@
 class Texture{
 public:
 	Texture();
+	
 	~Texture();
-	void load_texture();
+
 	void bind_texture();
 	void apply_texture();
+	void set_texture(char * name, int format,unsigned int size);
+	unsigned char* get_data();
+	void load_texture();
+
 
 private:
 	char *	m_name;
@@ -19,6 +24,7 @@ private:
 	unsigned char * m_data;
 	unsigned int m_id;
 
+	
 };
 
 
