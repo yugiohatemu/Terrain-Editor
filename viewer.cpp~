@@ -15,8 +15,6 @@ double trans[3] = {0};
 Matrix4x4 m_rotation;
 bool clear_redo_stack = false;
 
-unsigned int test;
-
 Viewer::Viewer()
 {
   Glib::RefPtr<Gdk::GL::Config> glconfig;
@@ -198,35 +196,35 @@ void Viewer::on_realize()
 	//Generate a randome map
 	m_map.randomize();
 
-	//setup water and reflection texture
-	reflection.set_texture("reflection.jpg",GL_RGB,256 );
-	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
+	marble.set_texture("marble.jpg",GL_RGB,64);
+	marble.bind_texture();
 
-	reflection.load_texture();
-	alpha.load_texture();	
-
-	unsigned char total_texture[4 * 256 * 256];
-	unsigned char * caustic_texture = reflection.get_data();
-	unsigned char * alpha_texture = alpha.get_data();
-	glGenTextures (1, &test);
 	
-	for (int i = 0; i < 256 * 256; i++){
-      total_texture[4 * i] = caustic_texture[3 * i];
-      total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
-      total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
-      total_texture[4 * i + 3] = alpha_texture[i];
-    }
-	glBindTexture (GL_TEXTURE_2D, test);
-	gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glEnable (GL_TEXTURE_GEN_S);
-	glEnable (GL_TEXTURE_GEN_T);
-	glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-	glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	sky.set_texture("otop6.jpg",GL_RGB ,512);
+	sky.bind_texture();
+}
 
+void Viewer::test(){
+	
+	//Draw the quad
+	glPushMatrix();
+	glTranslated(-10,0,-10);
+	sky.apply_texture();
+	glBegin(GL_QUADS);
+	glNormal3d(1,0,0);
+	glColor3d(1,1,1);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	//The coordinate seems to be bad in a contray order
+	glTexCoord2d(0, 0); glVertex3d(0,0,0);
+	glTexCoord2d(1, 0);	glVertex3d(20,0,0);
+	glTexCoord2d(1, 1); glVertex3d(20,15,0);
+	glTexCoord2d(0, 1); glVertex3d(0,15,0);
+	glEnd();
+
+	glPopMatrix();		
+	
 }
 
 
@@ -278,40 +276,27 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	
 	glLoadIdentity();
 	glTranslated(0,0,-40);
+
+	test();
+
 	glRotated(-60,1,0,0);
 	
-//Terrain coment out for now
-	//glBindTexture(GL_TEXTURE_2D, 0); //use a invalid to unbind?
-	glPushMatrix();
+	//Terrain coment out for now
+	//Unbind texture
+	//glBindTexture(GL_TEXTURE_2D, 0); 
+	marble.apply_texture();
 	float shineBuffer[1] = {20};
-	float specularBuffer[4] = {1,1,1,0.2};
-	float diffuseBuffer[4] = {0,0.5,0,0.2};
+	float specularBuffer[4] = {1,1,1,1};
+	float diffuseBuffer[4] = {0,0.5,0,1};
 	//Need to unbind the texture ...but this looks good for underwater effect
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	
 	m_map.draw();
-	glPopMatrix();
 	
-//Water
-	glPushMatrix();
-	glTranslated(0,0, 5);
-	/*float shineBuffer[1] = {60};
-	float specularBuffer[3] = {1,1,1};
-	float diffuseBuffer[3] = {1,1,1};*/
 	
-	diffuseBuffer[0] = 1; diffuseBuffer[1] = 1;diffuseBuffer[2] = 1; diffuseBuffer[3] = 0;shineBuffer[0] = 60;
- 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
-	//reflection.apply_texture();
-	glBindTexture(GL_TEXTURE_2D, test);
-	m_water.draw();
-	glPopMatrix();
-
-//Finish drawing
-
+	//Finish drawing
 	glPopMatrix();
 	gldrawable->swap_buffers();
 	gldrawable->gl_end();
@@ -344,19 +329,10 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 }
 
 void Viewer::list_hits(GLint hits, GLuint *names){
-	//TODO: remove later
- 	//printf("%d hits:\n", hits);
- /*
- 	for (int i = 0; i < hits; i++){
-		//std::cerr<<names[i*4]<<" "<<names[i*4+1]<<" "<<names[i*4 +2]<<" "<<names[i * 4+3 ]<<std::endl;
- 		printf(	"%d, %d, %d, %d\n",(GLubyte)names[i*4],(GLubyte)names[i*4+1],(GLubyte)names[i*4+2],(GLubyte)names[i*4+3]);
- }*/
-	//Pick the one on the top of the list?
-	//or is this on the bottom of the list?
-	//TODO: may need to compare z buffer?
+	
 	hit_name = (GLubyte)names[3];
 	hit_count = hits;
- 	//printf("\n");
+ 	
 }
 
 void Viewer::gl_select(int x, int y){
@@ -433,7 +409,7 @@ bool Viewer::on_button_release_event(GdkEventButton* event){
 		if(clear_redo_stack){
 			while (!redo_stack.empty()){
 			redo_stack.pop();
-  		}
+  			}
 		}
 		clear_redo_stack = false;
 	}
@@ -441,9 +417,7 @@ bool Viewer::on_button_release_event(GdkEventButton* event){
 	joint[0] = 0;
 	joint[1] = 0;
 	mouse_pressed[event->button-1] = false;
-	//Stop the accumulation of rotation
-	//root->rotate_joint('x',0);
-	//root->rotate_joint('y',0);
+	
 
   return true;
 }
@@ -452,7 +426,7 @@ bool Viewer::on_button_release_event(GdkEventButton* event){
 bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	
 	double disc_x= event->x - pos[0];
-  double disc_y = event->y - pos[1];
+  	double disc_y = event->y - pos[1];
 	
 	if(m_mode == Edit_Joint){
 		int ry = (disc_y > 0) ? 1 : -1;
@@ -472,24 +446,14 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 		if(mouse_pressed[0]){ //B1
 			trans[0] += disc_x*0.01;
 			trans[1] += disc_y*0.01;
-			//trans[0] += disc_x / ((float)SENS_PANX);
-			//trans[1] -= -disc_y / ((float)SENS_PANY);
-			
-			//vTranslate(disc_x / ((float)SENS_PANX), 'x');
-      //vTranslate(-disc_y / ((float)SENS_PANY), 'y');
       
 		}
 		if(mouse_pressed[1]){
 			trans[2] += disc_y*0.1;
-			//trans[2] += disc_y / ((float)SENS_ZOOM);
-			//vTranslate(disc_y / ((float)SENS_ZOOM), 'z');
-      // vRightMultiply(mTranslations, mNewMat);
 		}
     
 		if(mouse_pressed[2]){
-				vPerformRotate(pos[0], event->x,pos[1],event->y);
-				//trans[3] += disc_x*0.1;
-				//trans[4] += disc_y*0.1;
+			vPerformRotate(pos[0], event->x,pos[1],event->y);
 		}
 	}
 
@@ -499,31 +463,26 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
   return true;
 }
 
-void Viewer::vTranslate(float fTrans, char cAxis)
-{
-   // double * vals ;
-		//vals={1,0,0,0, 0,1,0,0 , 0,0,1,0,  0,0,0,1};
-		Vector4D row1(1,0,0,0);
-		Vector4D row2(0,1,0,0);
-		Vector4D row3(0,0,1,0);
-		Vector4D row4; 
-		if(cAxis == 'x'){
-			Vector4D x( fTrans,0,0,1);
-			row4 = x;
-		}else if(cAxis == 'x'){
-			Vector4D y(0, fTrans,0,1);
-			row4 = y;
-		}else if(cAxis == 'z'){
-			Vector4D z(0,0, fTrans,1);
-			row4 = z;
-		}
+void Viewer::vTranslate(float fTrans, char cAxis){
+
+	Vector4D row1(1,0,0,0);
+	Vector4D row2(0,1,0,0);
+	Vector4D row3(0,0,1,0);
+	Vector4D row4; 
+	if(cAxis == 'x'){
+		Vector4D x( fTrans,0,0,1);
+		row4 = x;
+	}else if(cAxis == 'x'){
+		Vector4D y(0, fTrans,0,1);
+		row4 = y;
+	}else if(cAxis == 'z'){
+		Vector4D z(0,0, fTrans,1);
+		row4 = z;
+	}
 		
-		//Matrix4x4 t(row1,row2,row3,row4);
-		//m_translation = m_translation*t;
 }
 
-void Viewer::draw_trackball_circle()
-{
+void Viewer::draw_trackball_circle(){
   int current_width = get_width();
   int current_height = get_height();
   
@@ -582,8 +541,6 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,float fOldX, float fOldY,float
                  float *fVecX, float *fVecY, float *fVecZ) {
    
    float fNewVecX, fNewVecY, fNewVecZ,fOldVecX, fOldVecY, fOldVecZ,fLength;
-
-		// Vector pointing from center of virtual trackball tonew mouse position
    
    fNewVecX    = fNewX * 2.0 / fDiameter;
    fNewVecY    = fNewY * 2.0 / fDiameter;
@@ -653,4 +610,51 @@ void Viewer::vAxisRotMatrix(float fVecX, float fVecY, float fVecZ) {
 		//m_rotation.transpose();
 }
 
+//Bascially it is mixing alpha and rbg texture togethre
+//Which is infact multitexture mapping?
+/*//setup water and reflection texture
+	reflection.set_texture("reflection.jpg",GL_RGB,256 );
+	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
 
+	reflection.load_texture();
+	alpha.load_texture();	
+
+	unsigned char total_texture[4 * 256 * 256];
+	unsigned char * caustic_texture = reflection.get_data();
+	unsigned char * alpha_texture = alpha.get_data();
+	glGenTextures (1, &test);
+	
+	for (int i = 0; i < 256 * 256; i++){
+      total_texture[4 * i] = caustic_texture[3 * i];
+      total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
+      total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
+      total_texture[4 * i + 3] = alpha_texture[i];
+    }
+	glBindTexture (GL_TEXTURE_2D, test);
+	gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glEnable (GL_TEXTURE_GEN_S);
+	glEnable (GL_TEXTURE_GEN_T);
+	glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);*/
+/*
+	//Water
+	glPushMatrix();
+	glTranslated(0,0, 5);
+	float shineBuffer[1] = {60};
+	float specularBuffer[3] = {1,1,1};
+	float diffuseBuffer[3] = {1,1,1};
+	
+	diffuseBuffer[0] = 1; diffuseBuffer[1] = 1;diffuseBuffer[2] = 1; diffuseBuffer[3] = 0;shineBuffer[0] = 60;
+ 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
+	//reflection.apply_texture();
+	glBindTexture(GL_TEXTURE_2D, test);
+	m_water.draw();
+	//m_water.water_test();
+	glPopMatrix();
+*/

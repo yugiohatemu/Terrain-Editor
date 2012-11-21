@@ -101,17 +101,20 @@ protected:
 	void gl_select(int x, int y);
 	void list_hits(GLint hits, GLuint *names);
 	
-	//Construct a grid terrain plane
-	void generate_circle();
 
+	//Testing
+	void test();
 private:
 	
 	Edit_Mode m_mode;
 	bool options[4];
 	HM m_map;
-	HM m_water;
+	Texture marble;
+	Texture sky;
+	/*HM m_water;
 	Texture reflection;
-	Texture alpha;
+	Texture alpha;*/
+	
 	//redo and undo stack
 	std::stack<joint_stack> undo_stack;
 	std::stack<joint_stack> redo_stack;
