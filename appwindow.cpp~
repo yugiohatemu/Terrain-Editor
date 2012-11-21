@@ -13,7 +13,7 @@ AppWindow::AppWindow(){
 	m_menu_app.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"), sigc::mem_fun(*this, &AppWindow::hide)));
 
 	// Set up the edit menu 
-	sigc::slot1<void, Viewer::Game_Mode> game_slot = sigc::mem_fun(m_viewer, &Viewer::set_game_mode);
+	sigc::slot1<void, Viewer::Edit_Mode> game_slot = sigc::mem_fun(m_viewer, &Viewer::set_game_mode);
 	Gtk::RadioButtonGroup game_group;
 	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_God mode", Gtk::AccelKey("g"),sigc::bind( game_slot, Viewer::GOD_MODE )));
 	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_Normal mode", Gtk::AccelKey("n"),sigc::bind( game_slot, Viewer::NORMAL_MODE )));

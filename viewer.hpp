@@ -55,12 +55,12 @@ public:
 	void undo();
 	void redo();
 
-	enum Edit_Mode{
-		Edit_Pos,
-		Edit_Joint,
+	enum Game_Mode{
+		GOD_MODE,
+		NORMAL_MODE
 	};
 
-	void set_edit_mode(Edit_Mode m){ 
+	void set_game_mode(Game_Mode m){ 
 		m_mode = m;
 	}
 	
@@ -75,11 +75,13 @@ public:
 		options[p] = !options[p];
 		invalidate();
 	}
-	void vCalcRotVec(float fNewX, float fNewY,float fOldX, float fOldY,float fDiameter,
+	/*void vCalcRotVec(float fNewX, float fNewY,float fOldX, float fOldY,float fDiameter,
                  float *fVecX, float *fVecY, float *fVecZ);
 	void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ);
 	void vPerformRotate(float fOldX, float fNewX, float fOldY, float fNewY) ;
-	void vTranslate(float fTrans, char cAxis);
+	void vTranslate(float fTrans, char cAxis);*/
+	//void KeyboardFunc (unsigned char key, int x, int y);
+	void get_key_input(char input);
 protected:
 
   // Called when GL is first initialized
@@ -97,7 +99,6 @@ protected:
 
   // Draw a circle for the trackball, with OpenGL commands.
   // Assumes the context for the viewer is active.
-  void draw_trackball_circle();
 	void gl_select(int x, int y);
 	void list_hits(GLint hits, GLuint *names);
 	
@@ -105,9 +106,10 @@ protected:
 	//Testing
 	void test();
 private:
-	
-	Edit_Mode m_mode;
 	bool options[4];
+
+
+	Game_Mode m_mode;
 	HM m_map;
 	Texture marble;
 	Texture sky;

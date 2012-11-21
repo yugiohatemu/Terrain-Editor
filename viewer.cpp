@@ -15,6 +15,9 @@ double trans[3] = {0};
 Matrix4x4 m_rotation;
 bool clear_redo_stack = false;
 
+double fov_pos[3] = {0};
+
+
 Viewer::Viewer()
 {
   Glib::RefPtr<Gdk::GL::Config> glconfig;
@@ -49,6 +52,8 @@ Viewer::Viewer()
     std::cerr << "Could not open " << std::endl;
 		abort();
   }*/
+	
+	m_mode = GOD_MODE;
 }
 
 Viewer::~Viewer()
@@ -143,6 +148,7 @@ void Viewer::redo(){
 }
 
 //Setup for calllist, enablelist and etc
+
 void Viewer::on_realize()
 {
   // Do some OpenGL setup.
@@ -180,7 +186,7 @@ void Viewer::on_realize()
 	gldrawable->gl_end();
 
 	//TODO:Move later
-	m_mode = Edit_Pos;
+	//m_mode = Edit_Pos;
 	for(int i =0;i<4;i+=1){
 		options[i] = false;
 	}
@@ -202,6 +208,7 @@ void Viewer::on_realize()
 	
 	sky.set_texture("oright19.jpg",GL_RGB ,512);
 	sky.bind_texture();
+
 }
 
 void Viewer::test(){
@@ -225,6 +232,27 @@ void Viewer::test(){
 
 	glPopMatrix();		
 	
+}
+
+void Viewer::get_key_input(char input){
+	//std::cerr<<input<<std::endl;
+	if(m_mode == NORMAL_MODE){
+		switch(input){
+			case 'w':
+				fov_pos[2] += 1;
+				break;
+			case 'a':
+				fov_pos[0] += 1;
+				break;			
+			case 's':
+				fov_pos[2] -= 1;
+				break;
+			case 'd':
+				fov_pos[0] -= 1;
+				break;
+		}
+		invalidate();
+	}
 }
 
 
@@ -271,30 +299,31 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	}
 	 
 	gluLookAt(0, 0,trans[2], -trans[0], trans[1],-1000,0,1,0);
-	
+	glTranslated(fov_pos[0],fov_pos[1],fov_pos[2]);
+
 	glPushMatrix();
 	
-	glLoadIdentity();
-	glTranslated(0,0,-40);
+	//glLoadIdentity();
+	glTranslated(0,-5,-20);
+	//Moving
+	
+	//test();
 
-	test();
-
-	glRotated(-60,1,0,0);
+	glRotated(-90,1,0,0);
+	
 	
 	//Terrain coment out for now
-	//Unbind texture
-	//glBindTexture(GL_TEXTURE_2D, 0); 
+	//Unbind texture  glBindTexture(GL_TEXTURE_2D, 0); 
 	marble.apply_texture();
 	float shineBuffer[1] = {20};
 	float specularBuffer[4] = {1,1,1,1};
 	float diffuseBuffer[4] = {0,0.5,0,1};
-	//Need to unbind the texture ...but this looks good for underwater effect
+	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	
 	m_map.draw();
-	
 	
 	//Finish drawing
 	glPopMatrix();
@@ -386,16 +415,16 @@ bool Viewer::on_button_press_event(GdkEventButton* event){
 	joint[0] = 0;
 	joint[1] = 0;
 	//need to minus event button to be put in the array
-	if(mouse_pressed[0] && m_mode == Edit_Joint){ 
+	/*if(mouse_pressed[0] ){ //
 			gl_select(event->x, get_height()-event->y); 
 			root->pick(hit_name); 
-	}
+	}*/
  	
   return true;
 }
 
 bool Viewer::on_button_release_event(GdkEventButton* event){
-	if(m_mode == Edit_Joint){ 
+	/*if(m_mode == Edit_Joint){ 
 		//Update undo stack , use minus since we are undoing
 		if(mouse_pressed[0]){
 			joint_stack j(hit_name, 0 , 0,false);
@@ -412,14 +441,14 @@ bool Viewer::on_button_release_event(GdkEventButton* event){
   			}
 		}
 		clear_redo_stack = false;
-	}
+	}*/
 	//reset
 	joint[0] = 0;
 	joint[1] = 0;
 	mouse_pressed[event->button-1] = false;
 	
 
-  return true;
+	return true;
 }
 
 
@@ -428,10 +457,10 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	double disc_x= event->x - pos[0];
   	double disc_y = event->y - pos[1];
 	
-	if(m_mode == Edit_Joint){
+	if(m_mode == GOD_MODE){
 		int ry = (disc_y > 0) ? 1 : -1;
 		int rx = (disc_x > 0) ? 1 : -1;
-		//how to capture the actual distance ?
+		
 		if(mouse_pressed[1]){ //rotate x
 			root->rotate_joint('x',ry);
 			joint[1] += rx;
@@ -441,8 +470,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 			root->rotate_joint('y',rx);
 			joint[0] += ry;
 		}
-		//TODO: Special case for head rotate
-	}else if(m_mode == Edit_Pos){
+	}else if(m_mode == NORMAL_MODE){
 		if(mouse_pressed[0]){ //B1
 			trans[0] += disc_x*0.01;
 			trans[1] += disc_y*0.01;
@@ -453,16 +481,16 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 		}
     
 		if(mouse_pressed[2]){
-			vPerformRotate(pos[0], event->x,pos[1],event->y);
+			//vPerformRotate(pos[0], event->x,pos[1],event->y);
 		}
 	}
 
 	invalidate();
 	pos[0] = event->x;
 	pos[0] = event->y;
-  return true;
+	return true;
 }
-
+/*
 void Viewer::vTranslate(float fTrans, char cAxis){
 
 	Vector4D row1(1,0,0,0);
@@ -608,11 +636,13 @@ void Viewer::vAxisRotMatrix(float fVecX, float fVecY, float fVecZ) {
 		//m.transpose();
 		m_rotation =m_rotation*(m.invert());
 		//m_rotation.transpose();
-}
+}*/
 
 //Bascially it is mixing alpha and rbg texture togethre
 //Which is infact multitexture mapping?
-/*//setup water and reflection texture
+//setup water and reflection texture
+//TODO:Remeber to fix texture for proper mapping DO NOT DELETE
+/*
 	reflection.set_texture("reflection.jpg",GL_RGB,256 );
 	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
 
