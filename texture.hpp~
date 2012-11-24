@@ -13,7 +13,7 @@ public:
 	void bind_texture();
 	void apply_texture();
 	void set_texture(char * name, int format,unsigned int size);
-	void get_data();
+	unsigned char* get_data();
 	void load_texture();
 
 

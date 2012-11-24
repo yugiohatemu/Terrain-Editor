@@ -113,9 +113,9 @@ private:
 	HM m_map;
 	Texture marble;
 	Texture sky;
-	/*HM m_water;
+	HM m_water;
 	Texture reflection;
-	Texture alpha;*/
+	Texture alpha;
 	
 	//redo and undo stack
 	std::stack<joint_stack> undo_stack;

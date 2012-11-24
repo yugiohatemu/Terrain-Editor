@@ -14,6 +14,7 @@ public:
 	void apply_texture();
 	void set_texture(char * name, int format,unsigned int size);
 	unsigned char* get_data();
+	unsigned int get_id();
 	void load_texture();
 
 

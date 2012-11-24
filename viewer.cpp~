@@ -13,6 +13,7 @@ int hit_name, hit_count = 0;
 int joint[2] = {0}; //x , y
 double trans[3] = {0};
 bool clear_redo_stack = false;
+GLuint testing;
 
 double fov_pos[3] = {0};
 double rotate[3]  = {0};
@@ -201,6 +202,7 @@ void Viewer::on_realize()
 	//TODO:recover
 	//Generate a randome map
 	m_map.randomize();
+	test();
 
 	marble.set_texture("marble.jpg",GL_RGB,64);
 	marble.bind_texture();
@@ -209,10 +211,42 @@ void Viewer::on_realize()
 	sky.set_texture("oright19.jpg",GL_RGB ,512);
 	sky.bind_texture();
 
+	
+
+	//glDisable(GL_TEXTURE_2D);
 }
 
 void Viewer::test(){
+	//Water texture special
+	reflection.set_texture("reflection.jpg",GL_RGB,256 );
+	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
+
+	reflection.load_texture();
+	alpha.load_texture();	
+
+	unsigned char total_texture[4 * 256 * 256];
+	unsigned char * caustic_texture = reflection.get_data();
+	unsigned char * alpha_texture = alpha.get_data();
+	glGenTextures (1, &testing);
 	
+	for (int i = 0; i < 256 * 256; i++){
+      total_texture[4 * i] = caustic_texture[3 * i];
+      total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
+      total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
+      total_texture[4 * i + 3] = alpha_texture[i];
+    }
+	glBindTexture (GL_TEXTURE_2D, testing);
+	gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glEnable (GL_TEXTURE_GEN_S);
+	glEnable (GL_TEXTURE_GEN_T);
+	glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	/*
 	//Draw the quad
 	glPushMatrix();
 	glTranslated(-10,0,-10);
@@ -230,7 +264,7 @@ void Viewer::test(){
 	glTexCoord2d(0, 0); glVertex3d(0,15,0);
 	glEnd();
 
-	glPopMatrix();		
+	glPopMatrix();	*/	
 	
 }
 
@@ -262,7 +296,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	//TODO: remeber to move to gl select
 	
 	glEnable(GL_DEPTH_TEST);
-
+	//glEnable(GL_TEXTURE_2D);
 	//I think the best way is to change this
 	if(m_mode == GOD_MODE){
 		gluLookAt(0,trans[1],trans[2]+40, 0,0,-1000,0,1,0);
@@ -270,21 +304,16 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 		glRotated(-60,1,0,0);
 	}else{
 		
-		double height= m_map.get_height(fov_pos[0],-fov_pos[2]);
-		//std::cerr<<fov_pos[0]<<" "<<fov_pos[2]<<" "<<height<<std::endl;
+		double height= m_map.get_height(fov_pos[0],fov_pos[2]);
 		gluLookAt(fov_pos[0],fov_pos[1]+height+1,fov_pos[2]+40,0,0,-1000,0,1,0);
 		glRotated(-90,1,0,0);
 		//Now get info from the HM
 	}
 	glPushMatrix();
-	//Test rotation
-	
-	//test();
-		
-	
-	//Terrain coment out for now
-	//Unbind texture  glBindTexture(GL_TEXTURE_2D, 0); 
+	glBindTexture(GL_TEXTURE_2D, 0);
+	//glActiveTexture(1);
 	marble.apply_texture();
+	//std::cerr<<marble.get_id()<<std::endl;
 	float shineBuffer[1] = {20};
 	float specularBuffer[4] = {1,1,1,1};
 	float diffuseBuffer[4] = {0,0.5,0,1};
@@ -294,12 +323,27 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	
 	m_map.draw();
+	//test() for skybox
+	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBlendFunc (GL_ONE, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
+	glPushMatrix();
+	glTranslated(0,0,2);
+	glBindTexture(GL_TEXTURE_2D, testing);
+	//std::cerr<<testing<<std::endl;
+	m_water.draw();
+	glPopMatrix();
+		
+	//Terrain coment out for now
+	//Unbind texture  ; 
+		
+	
 	
 	//Finish drawing
 	glPopMatrix();
 	gldrawable->swap_buffers();
 	gldrawable->gl_end();
-
+	//glDisable(GL_TEXTURE_2D);
   return true;
 }
 
@@ -469,153 +513,6 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	pos[0] = event->y;
 	return true;
 }
-/*
-void Viewer::vTranslate(float fTrans, char cAxis){
-
-	Vector4D row1(1,0,0,0);
-	Vector4D row2(0,1,0,0);
-	Vector4D row3(0,0,1,0);
-	Vector4D row4; 
-	if(cAxis == 'x'){
-		Vector4D x( fTrans,0,0,1);
-		row4 = x;
-	}else if(cAxis == 'x'){
-		Vector4D y(0, fTrans,0,1);
-		row4 = y;
-	}else if(cAxis == 'z'){
-		Vector4D z(0,0, fTrans,1);
-		row4 = z;
-	}
-		
-}
-
-void Viewer::draw_trackball_circle(){
-  int current_width = get_width();
-  int current_height = get_height();
-  
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glViewport(0, 0, current_width, current_height);
-  glOrtho(0.0, (float)current_width, 0.0, (float)current_height, -0.1, 200);//far used to be 0.1
-
-  // change to model view for drawing
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glEnable(GL_LINE_SMOOTH);
-  glColor3f(1.0, 1.0, 1.0);
-  double radius = current_width < current_height ? 
-    (float)current_width * 0.25 : (float)current_height * 0.25;
-  glTranslated((float)current_width * 0.5, (float)current_height * 0.5, 0);
-	
-  glBegin(GL_LINE_LOOP);
-  for(size_t i=0; i<40; ++i) {
-    double cosine = radius * cos(i*2*M_PI/40);
-    double sine = radius * sin(i*2*M_PI/40); //the 40 here is the latitude
-    glVertex2f(cosine, sine);
-  }
-  glEnd();
-	
-  glColor3f(0.0, 0.0, 0.0);
-  //glDisable(GL_LINE_SMOOTH);
-	
-}
-
-void Viewer::vPerformRotate(float fOldX, float fNewX, float fOldY, float fNewY) 
-{
-    float  fRotVecX, fRotVecY, fRotVecZ;
-	
-    float fDiameter = (get_width() < get_height()) ? get_width() * 0.5 : get_height() * 0.5;
-    int iCenterX = get_width() / 2;
-    int iCenterY = get_height() / 2;
-    float fOldModX = fOldX - iCenterX;
-    float fOldModY = fOldY - iCenterY;
-    float fNewModX = fNewX - iCenterX;
-    float fNewModY = fNewY - iCenterY;
-
-		//calculate vector
-    //vCalcRotVec(fNewModX*2, fNewModY*2,fOldModX*2, fOldModY*2,fDiameter,&fRotVecX, &fRotVecY, &fRotVecZ);
-    //vAxisRotMatrix(fRotVecX*0.1, -fRotVecY*0.1, fRotVecZ*0.1);
-
-
-		//Use this if can't figure out how to work
-		vCalcRotVec(fNewX, fNewY,fOldX,fOldY,fDiameter,&fRotVecX, &fRotVecY, &fRotVecZ);
-		vAxisRotMatrix(fRotVecX*0.1, -fRotVecY*0.1, fRotVecZ*0.1);
-		//
-
-}
-
-void Viewer::vCalcRotVec(float fNewX, float fNewY,float fOldX, float fOldY,float fDiameter,
-                 float *fVecX, float *fVecY, float *fVecZ) {
-   
-   float fNewVecX, fNewVecY, fNewVecZ,fOldVecX, fOldVecY, fOldVecZ,fLength;
-   
-   fNewVecX    = fNewX * 2.0 / fDiameter;
-   fNewVecY    = fNewY * 2.0 / fDiameter;
-   fNewVecZ    = (1 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
-
-   if (fNewVecZ < 0.0) {
-      fLength = sqrt(1.0 - fNewVecZ);
-      fNewVecZ  = 0.0;
-      fNewVecX /= fLength;
-      fNewVecY /= fLength;
-   } else {
-      fNewVecZ = sqrt(fNewVecZ);
-   }
-
-   fOldVecX    = fOldX * 2.0 / fDiameter;
-   fOldVecY    = fOldY * 2.0 / fDiameter;
-   fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
- 
-   if (fOldVecZ < 0.0) {
-      fLength = sqrt(1.0 - fOldVecZ);
-      fOldVecZ  = 0.0;
-      fOldVecX /= fLength;
-      fOldVecY /= fLength;
-   } else {
-      fOldVecZ = sqrt(fOldVecZ);
-   }
-
-   *fVecX = fOldVecY * fNewVecZ - fNewVecY * fOldVecZ;
-   *fVecY = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
-   *fVecZ = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
-}
-
-void Viewer::vAxisRotMatrix(float fVecX, float fVecY, float fVecZ) {
-    float fRadians, fInvLength, fNewVecX, fNewVecY, fNewVecZ;
-    fRadians = sqrt(fVecX * fVecX + fVecY * fVecY + fVecZ * fVecZ);
-		
-    if (fRadians > -0.000001 && fRadians < 0.000001) {
-				//m_rotation = m;
-				return ;
-    }
-	
-		//normalize
-    fInvLength = 1 / fRadians;
-    fNewVecX   = fVecX * fInvLength;
-    fNewVecY   = fVecY * fInvLength;
-    fNewVecZ   = fVecZ * fInvLength;
-
-    // Create the arbitrary axis rotation matrix 
-    double dSinAlpha = sin(fRadians);
-    double dCosAlpha = cos(fRadians);
-    double dT = 1 - dCosAlpha;
-
-		Vector4D row1(dCosAlpha + fNewVecX*fNewVecX*dT,fNewVecX*fNewVecY*dT + fNewVecZ*dSinAlpha,
-   	fNewVecX*fNewVecZ*dT - fNewVecY*dSinAlpha, 0);
-
-    Vector4D row2(fNewVecX*fNewVecY*dT - dSinAlpha*fNewVecZ, dCosAlpha + fNewVecY*fNewVecY*dT,
-		fNewVecY*fNewVecZ*dT + dSinAlpha*fNewVecX, 0);
-
-    Vector4D row3(fNewVecZ*fNewVecX*dT + dSinAlpha*fNewVecY, 
-		fNewVecZ*fNewVecY*dT - dSinAlpha*fNewVecX ,dCosAlpha + fNewVecZ*fNewVecZ*dT ,0);
-
-		Vector4D row4(0,0,0,1);
-		
-		Matrix4x4 m(row1,row2,row3,row4);
-		//m.transpose();
-		m_rotation =m_rotation*(m.invert());
-		//m_rotation.transpose();
-}*/
 
 //Bascially it is mixing alpha and rbg texture togethre
 //Which is infact multitexture mapping?

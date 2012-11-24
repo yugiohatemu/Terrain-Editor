@@ -81,6 +81,7 @@ public:
 	void vPerformRotate(float fOldX, float fNewX, float fOldY, float fNewY) ;
 	void vTranslate(float fTrans, char cAxis);*/
 	//void KeyboardFunc (unsigned char key, int x, int y);
+	void get_key_input(char input);
 protected:
 
   // Called when GL is first initialized

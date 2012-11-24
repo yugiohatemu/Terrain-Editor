@@ -26,6 +26,9 @@ unsigned char* Texture::get_data(){
 	return m_data;
 }
 
+unsigned int Texture::get_id(){
+	return m_id;
+}
 void Texture::bind_texture(){
 	//Bind the texture
 	glGenTextures (1, &m_id);

@@ -214,11 +214,11 @@ void HM::smoothing(){
 
 double HM::get_height(int x,int y){
 	x = x+MAP_BOUND/2 ;
-	y = MAP_BOUND-y ;
+	y = y+40;
 	if(x<0||y<0||x>=MAP_BOUND||y>=MAP_BOUND){
 		return 0;
 	}
-	//std::cerr<<x<<" "<<y<<" "<<height_map[x][y][2]<<std::endl;
+	std::cerr<<x<<" "<<y<<" "<<height_map[x][y][2]<<std::endl;
 	return height_map[x][y][2];
 }
 
