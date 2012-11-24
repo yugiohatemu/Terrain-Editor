@@ -5,7 +5,6 @@
 #define CS488_HM_HPP
 
 #include "algebra.hpp"
-//#include "texture.hpp"
 
 #define OBJ_PLANE_GRID 2
 #define OBJ_PLANE_QUAD 3
@@ -22,9 +21,9 @@ public:
 	void draw();
 	void randomize();
 	void water_test();
+	double get_height(int x,int y);
 private:
 	Point3D height_map[MAP_BOUND][MAP_BOUND];
-	//Texture m_texture;
 	Vector3D normal_map[(MAP_BOUND-1)][(MAP_BOUND-1)];
 	
 	int make_rand(int range);

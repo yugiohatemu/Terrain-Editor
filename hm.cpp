@@ -75,11 +75,6 @@ void HM::water_test(){
 
 //Generate a random map
 void HM::randomize(){
-	//TODO:disp should decrease
-	/*
-	for(int i = 0;i<50;i+=1){
-		make_circle();
-	}*/
 	make_circle(50);
 	//Calculate the normal
 	for(int i =0;i<MAP_BOUND-1;i+=1){ 
@@ -89,8 +84,6 @@ void HM::randomize(){
 			Vector3D n = x.cross(y);
 			n.normalize();
 			normal_map[i][j] = n;
-			
-			//TODO:we may also take consideration of the normal on the other plane	
 		}
 	}
 }
@@ -219,93 +212,14 @@ void HM::smoothing(){
 	}
 }
 
-/*
-	*//*for (j = 0; j < RESOLUTION; j++){
-		for (i = 0; i <= RESOLUTION; i++){
-			indice = 6 * (i + j * (RESOLUTION + 1));
-
-			v1x = surface[indice + 3];
-			v1y = surface[indice + 4];
-			v1z = surface[indice + 5];
-
-			v2x = v1x;
-			v2y = surface[indice + 1];
-			v2z = surface[indice + 2];
-
-			if (i < RESOLUTION){
-			v3x = surface[indice + 9];
-			v3y = surface[indice + 10];
-			v3z = v1z;
-			}else{
-				v3x = xn;
-				v3y = z (xn, v1z, t);
-				v3z = v1z;
-			}
-
-			vax =  v2x - v1x;
-			vay =  v2y - v1y;
-			vaz =  v2z - v1z;
-
-			vbx = v3x - v1x;
-			vby = v3y - v1y;
-			vbz = v3z - v1z;
-
-			nx = (vby * vaz) - (vbz * vay);
-			ny = (vbz * vax) - (vbx * vaz);
-			nz = (vbx * vay) - (vby * vax);
-
-			l = sqrtf (nx * nx + ny * ny + nz * nz);
-			if (l != 0){
-				l = 1 / l;
-				normal[indice + 3] = nx * l;
-				normal[indice + 4] = ny * l;
-				normal[indice + 5] = nz * l;
-			}else{
-				normal[indice + 3] = 0;
-				normal[indice + 4] = 1;
-				normal[indice + 5] = 0;
-			}
+double HM::get_height(int x,int y){
+	x = x+MAP_BOUND/2 ;
+	y = MAP_BOUND-y ;
+	if(x<0||y<0||x>=MAP_BOUND||y>=MAP_BOUND){
+		return 0;
+	}
+	std::cerr<<x<<" "<<y<<" "<<height_map[x][y][2]<<std::endl;
+	return height_map[x][y][2];
+}
 
 
-			if (j != 0){
-			// Values were computed during the previous loop 
-				preindice = 6 * (i + (j - 1) * (RESOLUTION + 1));
-				normal[indice] = normal[preindice + 3];
-				normal[indice + 1] = normal[preindice + 4];
-				normal[indice + 2] = normal[preindice + 5];
-			}
-			else{
-				// 	    v1x = v1x; 
-				v1y = z (v1x, (j - 1) * delta - 1, t);
-				v1z = (j - 1) * delta - 1;
-
-				// 	    v3x = v3x; 
-				v3y = z (v3x, v2z, t);
-				v3z = v2z;
-
-				vax = v1x - v2x;
-				vay = v1y - v2y;
-				vaz = v1z - v2z;
-
-				vbx = v3x - v2x;
-				vby = v3y - v2y;
-				vbz = v3z - v2z;
-
-				nx = (vby * vaz) - (vbz * vay);
-				ny = (vbz * vax) - (vbx * vaz);
-				nz = (vbx * vay) - (vby * vax);
-
-				l = sqrtf (nx * nx + ny * ny + nz * nz);
-				if (l != 0){
-					l = 1 / l;
-					normal[indice] = nx * l;
-					normal[indice + 1] = ny * l;
-					normal[indice + 2] = nz * l;
-				}else{
-					normal[indice] = 0;
-					normal[indice + 1] = 1;
-					normal[indice + 2] = 0;
-				}
-			}
-		}
-	}*/

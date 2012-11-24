@@ -264,12 +264,20 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glEnable(GL_DEPTH_TEST);
 
 	//I think the best way is to change this
-	gluLookAt(0,trans[1],trans[2]+40, 0,0,-1000,0,1,0);
-	glRotated(trans[0],0,1,0);
-	
+	if(m_mode == GOD_MODE){
+		gluLookAt(0,trans[1],trans[2]+40, 0,0,-1000,0,1,0);
+		glRotated(trans[0],0,1,0);
+		glRotated(-60,1,0,0);
+	}else{
+		
+		double height= m_map.get_height(fov_pos[0],-fov_pos[2]);
+		gluLookAt(fov_pos[0],fov_pos[1]+height+1,fov_pos[2]+40,0,0,-1000,0,1,0);
+		glRotated(-90,1,0,0);
+		//Now get info from the HM
+	}
 	glPushMatrix();
 	//Test rotation
-	glRotated(-60,1,0,0);
+	
 	//test();
 		
 	
@@ -373,16 +381,16 @@ void Viewer::get_key_input(char input){
 	if(m_mode == NORMAL_MODE){
 		switch(input){
 			case 'w':
-				fov_pos[2] += 1;
-				break;
-			case 'a':
-				fov_pos[0] += 1;
-				break;			
-			case 's':
 				fov_pos[2] -= 1;
 				break;
-			case 'd':
+			case 'a':
 				fov_pos[0] -= 1;
+				break;			
+			case 's':
+				fov_pos[2] += 1;
+				break;
+			case 'd':
+				fov_pos[0] += 1;
 				break;
 		}
 		invalidate();
