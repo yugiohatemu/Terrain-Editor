@@ -9,7 +9,8 @@
 
 #define OBJ_PLANE_GRID 2
 #define OBJ_PLANE_QUAD 3
-const int MAP_BOUND = 21;
+const int MAP_BOUND = 51;
+
 //Should we let the user decide the size
 //use a small map for now
 
@@ -29,10 +30,9 @@ private:
 	int make_rand(int range);
 	void draw_grid_list();
 	void draw_quad_list();
-	void make_circle();
-	//void set_texture();
-	
-
+	void make_circle(int round);
+	double get_displacement(int round);
+	void smoothing();
 };
 
 #endif // CS488_HM_HPP

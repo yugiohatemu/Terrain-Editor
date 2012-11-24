@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <time.h>
 
-GLuint texture[1];
+const double MAX_DISPLACEMENT = 6.0;
 
 HM::HM(){
 	
@@ -71,14 +71,16 @@ void HM::water_test(){
 
 }
 
+
+
 //Generate a random map
 void HM::randomize(){
 	//TODO:disp should decrease
-	
+	/*
 	for(int i = 0;i<50;i+=1){
 		make_circle();
-	}
-	
+	}*/
+	make_circle(50);
 	//Calculate the normal
 	for(int i =0;i<MAP_BOUND-1;i+=1){ 
 		for(int j = 0;j<MAP_BOUND-1;j+=1){
@@ -97,7 +99,7 @@ void HM::randomize(){
 void HM::draw_quad_list(){
 	//glNewList(OBJ_PLANE_QUAD, GL_COMPILE);
 	    
-	glBegin(GL_TRIANGLES); 
+	glBegin(GL_QUADS); 
 	
 	for(int i =0;i<MAP_BOUND-1;i+=1){ 
 		for(int j = 0;j<MAP_BOUND-1;j+=1){
@@ -105,19 +107,10 @@ void HM::draw_quad_list(){
 			Vector3D n = normal_map[i][j];
 			glNormal3d(n[0],n[1],n[2]);
 		
-			glTexCoord2d(0, 0);
-			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			glTexCoord2d(1, 0);
-			glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
-			glTexCoord2d(1, 1);
-			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
-
-			glTexCoord2d(0, 0);
-			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
-			glTexCoord2d(0, 1);
-			glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
-			glTexCoord2d(1, 1);
-			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
+			glTexCoord2d(0, 0);glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
+			glTexCoord2d(1, 0);glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
+			glTexCoord2d(1, 1);glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
+			glTexCoord2d(0, 1);glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
 			
 		}
 	}
@@ -159,7 +152,6 @@ void HM::draw_grid_list(){
 	}
 
 	glEnd();	
-    //glEndList();
 }
 
 //Return a random in from 0 to (range-1)
@@ -168,28 +160,64 @@ int HM::make_rand(int range){
 }
 
 //Use circle algorithm for genertaion
-void HM::make_circle(){
+void HM::make_circle(int round){
 	//Choose a random point from grid to be the circle center
-	int i = make_rand(MAP_BOUND);
-	int j = make_rand(MAP_BOUND);
-	Point3D center = height_map[i][j];
+	for(int i = round;i>0;i-=1){	
+		Point3D center = height_map[make_rand(MAP_BOUND)][ make_rand(MAP_BOUND)];
 	
-	//Random radius
-	double radius =make_rand(MAP_BOUND/3)+1;
-	//Shoud decrease based on iteration
-	double disp = 1;
+		//Random radius
+		double radius =make_rand(MAP_BOUND/3)+1;
+		double disp = get_displacement(i);
 
-	for(int i =0;i< MAP_BOUND ;i+=1){ 
-		for(int j = 0;j< MAP_BOUND ;j+=1){
-			double dis = (height_map[i][j] - center).length();
-			double pd = dis*2/radius; 
-			
-			if(fabs(pd)<= 1.0){
-				height_map[i][j][2] += disp/2+cos(pd* M_PI)*disp/2;
+		for(int x =0;x< MAP_BOUND ;x+=1){ 
+			for(int y = 0;y< MAP_BOUND ;y+=1){
+				double dis = (height_map[x][y] - center).length();
+				double pd = dis*2/radius; 
+		
+				if(fabs(pd)<= 1.0){
+					height_map[x][y][2] += disp/2+cos(pd* M_PI)*disp/2;
+				}
 			}
 		}
 	}
+	smoothing();
+	smoothing();
+}
 
+double HM::get_displacement(int round){
+	double disp = MAX_DISPLACEMENT- round * 0.1;
+	if(disp< 0.1){
+		disp = 0.1;
+	}
+	return disp;
+}
+
+void HM::smoothing(){
+	double k = 0.5;
+	//Left to right
+	for(int i = 1;i<MAP_BOUND;i+=1){
+		for(int j = 0;j<MAP_BOUND;j+=1){
+			height_map[i][j][2] = height_map[i+1][j][2]*(1-k) + height_map[i][j][2]*k;
+		}
+	}
+	//right to left
+	for(int i = MAP_BOUND-1;i>1;i-=1){
+		for(int j = 0;j<MAP_BOUND;j+=1){
+			height_map[i][j][2] = height_map[i-1][j][2]*(1-k) + height_map[i][j][2]*k;
+		}
+	}
+	//bottom to top
+	for(int i = 0;i<MAP_BOUND;i+=1){
+		for(int j = 1;j<MAP_BOUND;j+=1){
+			height_map[i][j][2] = height_map[i][j+1][2]*(1-k) + height_map[i][j][2]*k;
+		}
+	}
+	//top to bottom
+	for(int i = 0;i<MAP_BOUND;i+=1){
+		for(int j = MAP_BOUND-1;j>1; j-=1){
+			height_map[i][j][2] = height_map[i][j-1][2]*(1-k) + height_map[i][j][2]*k;
+		}
+	}
 }
 
 /*

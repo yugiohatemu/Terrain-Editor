@@ -12,11 +12,11 @@ bool mouse_pressed[3] ={false,false,false};
 int hit_name, hit_count = 0;
 int joint[2] = {0}; //x , y
 double trans[3] = {0};
-Matrix4x4 m_rotation;
 bool clear_redo_stack = false;
 
 double fov_pos[3] = {0};
-
+double rotate[3]  = {0};
+int angle = 0;
 
 Viewer::Viewer()
 {
@@ -78,7 +78,7 @@ void Viewer::reset_position(){
 
 void Viewer::reset_orientation(){
 	Matrix4x4 i;
-	m_rotation = i;
+	//m_rotation = i;
 	invalidate();
 }
 
@@ -99,7 +99,7 @@ void Viewer::reset_all(){
 	trans[1] = 0;
 	trans[2] = 0;
 	Matrix4x4 i;
-	m_rotation = i;
+	//m_rotation = i;
 	root->reset_joint();
 	while (!redo_stack.empty()){
 			redo_stack.pop();
@@ -234,83 +234,44 @@ void Viewer::test(){
 	
 }
 
-void Viewer::get_key_input(char input){
-	//std::cerr<<input<<std::endl;
-	if(m_mode == NORMAL_MODE){
-		switch(input){
-			case 'w':
-				fov_pos[2] += 1;
-				break;
-			case 'a':
-				fov_pos[0] += 1;
-				break;			
-			case 's':
-				fov_pos[2] -= 1;
-				break;
-			case 'd':
-				fov_pos[0] -= 1;
-				break;
-		}
-		invalidate();
-	}
-}
 
 
 bool Viewer::on_expose_event(GdkEventExpose* event)
 {
-  Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
+	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 
-  if (!gldrawable) return false;
+	if (!gldrawable) return false;
 
-  if (!gldrawable->gl_begin(get_gl_context()))
-    return false;
-	
-  // Set up for perspective drawing 
-  glMatrixMode(GL_PROJECTION);
-	
-  glLoadIdentity();	
-  glViewport(0, 0, get_width(), get_height());
-  gluPerspective(40.0, (GLfloat)get_width()/(GLfloat)get_height(), 0.1, 1000.0);
-	
-  // change to model view for drawing
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  // Clear framebuffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (!gldrawable->gl_begin(get_gl_context()))
+	return false;
+
+	// Set up for perspective drawing 
+	glMatrixMode(GL_PROJECTION);
+
+	glLoadIdentity();	
+	glViewport(0, 0, get_width(), get_height());
+	gluPerspective(40.0, (GLfloat)get_width()/(GLfloat)get_height(), 0.1, 1000.0);
+
+	// change to model view for drawing
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	// Clear framebuffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 
 	//TODO: remeber to move to gl select
 	
 	glEnable(GL_DEPTH_TEST);
-	
-	if(options[Back_Face]&&!options[Front_Face]){
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-	}else if(!options[Back_Face]&&options[Front_Face]){
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-	}else if(options[Back_Face]&&options[Front_Face]){
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT_AND_BACK);
-	}else{
-		glDisable(GL_CULL_FACE);
-	}
-	 
-	gluLookAt(0, 0,trans[2], -trans[0], trans[1],-1000,0,1,0);
-	glTranslated(fov_pos[0],fov_pos[1],fov_pos[2]);
 
+	//I think the best way is to change this
+	gluLookAt(0,trans[1],trans[2]+40, 0,0,-1000,0,1,0);
+	glRotated(trans[0],0,1,0);
+	
 	glPushMatrix();
-	
-	//glLoadIdentity();
-	glTranslated(0,-5,-20);
-	//Moving
-	
+	//Test rotation
+	glRotated(-60,1,0,0);
 	//test();
-
-	glRotated(-90,1,0,0);
-	
+		
 	
 	//Terrain coment out for now
 	//Unbind texture  glBindTexture(GL_TEXTURE_2D, 0); 
@@ -390,7 +351,7 @@ void Viewer::gl_select(int x, int y){
 	
 	glPushMatrix();
 	//glMultMatrixd(m_translation.begin());
-	glMultMatrixd(m_rotation.transpose().begin());
+	//glMultMatrixd(m_rotation.transpose().begin());
 	root->walk_gl(true);
 	
 	//TODO: Note that track ball will increase the hit by 1, so remeber to add name for ball
@@ -405,6 +366,27 @@ void Viewer::gl_select(int x, int y){
 	glMatrixMode(GL_MODELVIEW);
 	//TODO:finaly draw again for applying phong change
 	invalidate();
+}
+
+void Viewer::get_key_input(char input){
+	//std::cerr<<input<<std::endl;
+	if(m_mode == NORMAL_MODE){
+		switch(input){
+			case 'w':
+				fov_pos[2] += 1;
+				break;
+			case 'a':
+				fov_pos[0] += 1;
+				break;			
+			case 's':
+				fov_pos[2] -= 1;
+				break;
+			case 'd':
+				fov_pos[0] -= 1;
+				break;
+		}
+		invalidate();
+	}
 }
 
 
@@ -442,12 +424,8 @@ bool Viewer::on_button_release_event(GdkEventButton* event){
 		}
 		clear_redo_stack = false;
 	}*/
-	//reset
-	joint[0] = 0;
-	joint[1] = 0;
-	mouse_pressed[event->button-1] = false;
 	
-
+	mouse_pressed[event->button-1] = false;
 	return true;
 }
 
@@ -460,29 +438,21 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	if(m_mode == GOD_MODE){
 		int ry = (disc_y > 0) ? 1 : -1;
 		int rx = (disc_x > 0) ? 1 : -1;
-		
-		if(mouse_pressed[1]){ //rotate x
-			root->rotate_joint('x',ry);
-			joint[1] += rx;
+		angle += rx;
+		if(mouse_pressed[0]){ //rotate x
+			trans[0] += rx ;
 			
 		}
-		if(mouse_pressed[2]){ //rotate y
-			root->rotate_joint('y',rx);
-			joint[0] += ry;
+		if(mouse_pressed[1]){ //rotate y
+			trans[1] += ry ; 
+			
 		}
+		if(mouse_pressed[2]){ //rotate z
+			trans[2] += ry;
+		}
+		
 	}else if(m_mode == NORMAL_MODE){
-		if(mouse_pressed[0]){ //B1
-			trans[0] += disc_x*0.01;
-			trans[1] += disc_y*0.01;
-      
-		}
-		if(mouse_pressed[1]){
-			trans[2] += disc_y*0.1;
-		}
     
-		if(mouse_pressed[2]){
-			//vPerformRotate(pos[0], event->x,pos[1],event->y);
-		}
 	}
 
 	invalidate();
