@@ -1,13 +1,18 @@
-#include "particle.hpp"
 #include <math.h>
-//particle_array[MAX_PARTICLE_COUNT];
+#include <time.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include "particle.hpp"
 
+const double HEIGHT_LIMIT = 10.0;
+const double VALID_HEIGHT = 8.0;
+const double PARTICLE_HEIGHT = 0.5;
+const double SIZE_LIMIT = 5;
+const double SPEED = 0.3;
 
 Particle::Particle(){
-	Point3D p(0,0,10);//This depends on the max height of the mountain?
-	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
-		particle_array[i] = p;
-	}
+	
+	
 }
 	
 
@@ -17,31 +22,47 @@ Particle::~Particle(){
 
 void Particle::make_particle(){
 	
+	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
+		double x = make_rand(SIZE_LIMIT);
+		double y = make_rand(SIZE_LIMIT);
+		double z = make_rand(HEIGHT_LIMIT);
+		//HEIGHT_LIMIT -
+		// make_rand(VALID_HEIGHT);
+		Point3D p(x,y,z);
+		particle_array[i] = p;
+		//std::cerr<<p<<std::endl;
+	}
 }
-	
+
+double Particle::make_rand(double range){
+	//Use srand for real random
+	//srand(time(NULL));
+	//generate a before decimal part and an after decimal part
+	double r= ((double)rand()/(double)RAND_MAX)+(double)(std::rand()%(int)range);
+	return r;
+}	
 
 void Particle::update_particle(){
 		
 	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
-		particle_array[i][2] -= height;
+		particle_array[i][2] -= SPEED;
 		if(particle_array[i][2]<0){
 			//Recycle the particle
-			int x = rand();
-			int y = rand();
-			Point3d p(x,y,10);
-			particle_array[i] = p;
+			particle_array[i][2] = HEIGHT_LIMIT;
 		}
 	}
 }
 
 void Particle::draw(){
-	//Only draw the visible particle
+	//Only draw the visible particle rain if we draw snow , then use glut?
 	update_particle();	
-	glBegin(GL_LINES)
+	glColor3d(0,0,0);
+	glBegin(GL_LINES);
 	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
-		if(valid rain level){
-			glVertex3d();
-			glVertex3d();
+		if(particle_array[i][2]<= VALID_HEIGHT){
+			//std::cerr<<"a"<<std::endl;
+			glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]);
+			glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]-PARTICLE_HEIGHT);
 		}
 	}
 	glEnd();

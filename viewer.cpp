@@ -211,7 +211,7 @@ void Viewer::on_realize()
 	sky.set_texture("oright19.jpg",GL_RGB ,512);
 	sky.bind_texture();
 
-	
+	rain.make_particle();
 
 	//glDisable(GL_TEXTURE_2D);
 }
@@ -311,6 +311,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	}
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);
+	rain.draw();
+	
 	//glActiveTexture(1);
 	marble.apply_texture();
 	//std::cerr<<marble.get_id()<<std::endl;
@@ -323,6 +325,10 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	
 	m_map.draw();
+
+	
+
+	//WARNING:Put the alpha blend last to draw, ie water
 	//test() for skybox
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//glBlendFunc (GL_ONE, GL_ONE);

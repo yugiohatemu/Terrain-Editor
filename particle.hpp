@@ -12,16 +12,17 @@ class Particle{
 public: 
 	Particle();
 	~Particle();		
-	draw();
-
+	void draw();
+	void make_particle();
 private:
 	Point3D particle_array[MAX_PARTICLE_COUNT];
-	void make_Particle();
-	void update_Particle();	
+	
+	void update_particle();	
+	double make_rand(double range);
 	//an array with rains
 	//a update function
 	//a generate/recycle function
 	
-}
+};
 
 #endif // CS488_Particle_HPP

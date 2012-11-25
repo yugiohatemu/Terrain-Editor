@@ -7,6 +7,7 @@
 #include <stack>
 #include "hm.hpp"
 #include "texture.hpp"
+#include "particle.hpp"
 
 //hit name
 //how much x , y has moved
@@ -117,6 +118,9 @@ private:
 	Texture reflection;
 	Texture alpha;
 	
+	//Rain testing
+	Particle rain;
+
 	//redo and undo stack
 	std::stack<joint_stack> undo_stack;
 	std::stack<joint_stack> redo_stack;
