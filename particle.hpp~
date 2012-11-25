@@ -1,0 +1,27 @@
+//Rain.hpp 
+//Created by Yue Huang on Nov 24
+ 
+
+#ifndef CS488_PARTICLE_HPP
+#define CS488_PARTICLE_HPP
+
+#include "algebra.hpp"
+const int MAX_PARTICLE_COUNT = 100;
+
+class Particle{
+public: 
+	Particle();
+	~Particle();		
+	void make_Particle();
+	void update_Particle();	
+
+private:
+	Point3D particle_array[MAX_PARTICLE_COUNT];
+	
+	//an array with rains
+	//a update function
+	//a generate/recycle function
+	
+}
+
+#endif // CS488_Particle_HPP

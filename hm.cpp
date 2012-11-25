@@ -3,7 +3,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "hm.hpp"
-#include <stdio.h>
 #include <time.h>
 
 const double MAX_DISPLACEMENT = 6.0;

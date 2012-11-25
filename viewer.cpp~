@@ -326,6 +326,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	//test() for skybox
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//glBlendFunc (GL_ONE, GL_ONE);
+	glColor4f(1.0, 1.0, 1.0, 0.5);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 	glPushMatrix();
 	glTranslated(0,0,2);

@@ -335,10 +335,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	m_water.draw();
 	glPopMatrix();
 		
-	//Terrain coment out for now
-	//Unbind texture  ; 
-		
-	
 	
 	//Finish drawing
 	glPopMatrix();
