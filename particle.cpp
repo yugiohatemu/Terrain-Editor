@@ -7,7 +7,7 @@
 const double HEIGHT_LIMIT = 10.0;
 const double VALID_HEIGHT = 8.0;
 const double PARTICLE_HEIGHT = 0.5;
-const double SIZE_LIMIT = 5;
+const double SIZE_LIMIT = 10;
 const double SPEED = 0.3;
 
 Particle::Particle(){
@@ -26,11 +26,9 @@ void Particle::make_particle(){
 		double x = make_rand(SIZE_LIMIT);
 		double y = make_rand(SIZE_LIMIT);
 		double z = make_rand(HEIGHT_LIMIT);
-		//HEIGHT_LIMIT -
-		// make_rand(VALID_HEIGHT);
+		
 		Point3D p(x,y,z);
 		particle_array[i] = p;
-		//std::cerr<<p<<std::endl;
 	}
 }
 
@@ -59,11 +57,10 @@ void Particle::draw(){
 	glColor3d(0,0,0);
 	glBegin(GL_LINES);
 	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
-		if(particle_array[i][2]<= VALID_HEIGHT){
-			//std::cerr<<"a"<<std::endl;
-			glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]);
-			glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]-PARTICLE_HEIGHT);
-		}
+		
+		glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]);
+		glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]-PARTICLE_HEIGHT);
+		
 	}
 	glEnd();
 }

@@ -18,6 +18,7 @@ GLuint testing;
 double fov_pos[3] = {0};
 double rotate[3]  = {0};
 int angle = 0;
+double look_at[2] = {1,1};
 
 Viewer::Viewer()
 {
@@ -299,14 +300,18 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	//glEnable(GL_TEXTURE_2D);
 	//I think the best way is to change this
 	if(m_mode == GOD_MODE){
-		gluLookAt(0,trans[1],trans[2]+40, 0,0,-1000,0,1,0);
+		gluLookAt(0,0,trans[2]+40, 0,0,-1000,0,1,0);
 		glRotated(trans[0],0,1,0);
-		glRotated(-60,1,0,0);
+		glRotated(trans[1],0,0,1);
+		glRotated(-90,1,0,0);
 	}else{
 		
 		double height= m_map.get_height(fov_pos[0],fov_pos[2]);
 		gluLookAt(fov_pos[0],fov_pos[1]+height+1,fov_pos[2]+40,0,0,-1000,0,1,0);
+		//gluLookAt(fov_pos[0],fov_pos[1]+height+1,fov_pos[2]+40,look_at[0],look_at[1],-1000,0,1,0);
 		glRotated(-90,1,0,0);
+		glRotated(look_at[0],0,0,1); //left right
+		glRotated(look_at[1],0,1,0); //up down
 		//Now get info from the HM
 	}
 	glPushMatrix();
@@ -452,34 +457,12 @@ bool Viewer::on_button_press_event(GdkEventButton* event){
 	mouse_pressed[event->button-1] = true;
 	joint[0] = 0;
 	joint[1] = 0;
-	//need to minus event button to be put in the array
-	/*if(mouse_pressed[0] ){ //
-			gl_select(event->x, get_height()-event->y); 
-			root->pick(hit_name); 
-	}*/
+	
  	
-  return true;
+ 	 return true;
 }
 
 bool Viewer::on_button_release_event(GdkEventButton* event){
-	/*if(m_mode == Edit_Joint){ 
-		//Update undo stack , use minus since we are undoing
-		if(mouse_pressed[0]){
-			joint_stack j(hit_name, 0 , 0,false);
-			undo_stack.push(j);	
-		}else{
-			joint_stack j(hit_name, joint[1]%30 , joint[0]%30,true);
-			undo_stack.push(j);	
-		}
-		
-		//clean the redo stack if a the user moves
-		if(clear_redo_stack){
-			while (!redo_stack.empty()){
-			redo_stack.pop();
-  			}
-		}
-		clear_redo_stack = false;
-	}*/
 	
 	mouse_pressed[event->button-1] = false;
 	return true;
@@ -508,7 +491,24 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 		}
 		
 	}else if(m_mode == NORMAL_MODE){
-    
+    	//need to capture the mouse motion
+		//up,down,left,right
+		//
+		if(abs(disc_x)>abs(disc_y)){
+			if(disc_x>0){
+				look_at[0] -= 0.1;	
+			}else{
+				look_at[0] += 0.1;	
+			}
+		}else{
+		
+			if(disc_y>0){ //y direction
+				look_at[1] -= 0.5;	
+			}else{
+				look_at[1] += 0.5;	
+			}
+		}
+		
 	}
 
 	invalidate();

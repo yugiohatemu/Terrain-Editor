@@ -3,7 +3,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "hm.hpp"
-#include <stdio.h>
 #include <time.h>
 
 const double MAX_DISPLACEMENT = 6.0;
@@ -148,8 +147,10 @@ void HM::draw_grid_list(){
 }
 
 //Return a random in from 0 to (range-1)
-int HM::make_rand(int range){
-	return (std::rand()%range);
+double HM::make_rand(int range){
+	double r= ((double)rand()/(double)RAND_MAX)+(double)(std::rand()%(int)range);
+	return r;
+	//return (std::rand()%range);
 }
 
 //Use circle algorithm for genertaion
