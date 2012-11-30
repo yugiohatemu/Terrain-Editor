@@ -20,9 +20,11 @@ AppWindow::AppWindow(){
 
 	// Set up the light menu 
 	sigc::slot1<void, Viewer::Light_Mode> light_slot = sigc::mem_fun(m_viewer, &Viewer::set_light_mode);	
-	
 	m_menu_light.items().push_back(CheckMenuElem("_Light position", Gtk::AccelKey("p"), sigc::bind(light_slot, Viewer::LIGHT_POSITION )));	
-	m_menu_light.items().push_back(CheckMenuElem("_Light ambient", Gtk::AccelKey("a"), sigc::bind(light_slot, Viewer::LIGHT_AMBIENT )));			
+	m_menu_light.items().push_back(CheckMenuElem("_Light ambient", Gtk::AccelKey("a"), sigc::bind(light_slot, Viewer::LIGHT_AMBIENT )));
+
+	//Add models 
+				
 	
 	// Set up the menu bar
 	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", m_menu_app));
@@ -42,15 +44,16 @@ bool AppWindow::on_key_press_event( GdkEventKey *ev ){
 	
 	//If satisfying in the event list, just pass it to the view, otherwise, do not pass
 	//in wasd and WASD
-  	if(ev->keyval == GDK_w ||ev->keyval == GDK_W){
+	
+  	if(ev->keyval == GDK_w ||ev->keyval == GDK_W||ev->keyval == GDK_Up){
 		m_viewer.get_key_input('w'); 
-	}else if(ev->keyval == GDK_a ||ev->keyval == GDK_A){
+	}else if(ev->keyval == GDK_a ||ev->keyval == GDK_A||ev->keyval == GDK_Left){
 		m_viewer.get_key_input('a');
 		return true;
-	}else if(ev->keyval == GDK_s ||ev->keyval == GDK_S){
+	}else if(ev->keyval == GDK_s ||ev->keyval == GDK_S||ev->keyval == GDK_Down){
 		m_viewer.get_key_input('s'); 
 		return true;
-	}else if(ev->keyval == GDK_d ||ev->keyval == GDK_D){
+	}else if(ev->keyval == GDK_d ||ev->keyval == GDK_D||ev->keyval == GDK_Right){
 		m_viewer.get_key_input('d'); 
 		return true;
 	}else {

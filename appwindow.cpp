@@ -17,12 +17,15 @@ AppWindow::AppWindow(){
 	Gtk::RadioButtonGroup game_group;
 	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_God mode", Gtk::AccelKey("g"),sigc::bind( game_slot, Viewer::GOD_MODE )));
 	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_Normal mode", Gtk::AccelKey("n"),sigc::bind( game_slot, Viewer::NORMAL_MODE )));
+	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_Edit mode", Gtk::AccelKey("e"),sigc::bind( game_slot, Viewer::EDIT_MODE )));
 
 	// Set up the light menu 
 	sigc::slot1<void, Viewer::Light_Mode> light_slot = sigc::mem_fun(m_viewer, &Viewer::set_light_mode);	
-	
 	m_menu_light.items().push_back(CheckMenuElem("_Light position", Gtk::AccelKey("p"), sigc::bind(light_slot, Viewer::LIGHT_POSITION )));	
-	m_menu_light.items().push_back(CheckMenuElem("_Light ambient", Gtk::AccelKey("a"), sigc::bind(light_slot, Viewer::LIGHT_AMBIENT )));			
+	m_menu_light.items().push_back(CheckMenuElem("_Light ambient", Gtk::AccelKey("a"), sigc::bind(light_slot, Viewer::LIGHT_AMBIENT )));
+
+	//Add models 
+				
 	
 	// Set up the menu bar
 	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", m_menu_app));

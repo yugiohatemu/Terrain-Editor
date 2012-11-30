@@ -8,6 +8,7 @@
 #include "hm.hpp"
 #include "texture.hpp"
 #include "particle.hpp"
+#include "object.hpp"
 
 //hit name
 //how much x , y has moved
@@ -54,7 +55,8 @@ public:
 
 	enum Game_Mode{
 		GOD_MODE,
-		NORMAL_MODE
+		NORMAL_MODE,
+		EDIT_MODE
 	};
 
 	void set_game_mode(Game_Mode m){ 
@@ -67,6 +69,15 @@ public:
 	};
 	
 	void set_light_mode(Light_Mode l){
+		l_mode = l;
+	}
+
+	enum Add_Mode{
+		ADD_SPHERE,
+		ADD_CUBE
+	};
+	
+	void set_add_mode(Light_Mode l){
 		l_mode = l;
 	}
 	
@@ -92,6 +103,7 @@ private:
 	
 	Game_Mode m_mode;
 	Light_Mode l_mode;
+	Add_Mode a_mode;
 
 	HM m_map;
 	Texture marble;
@@ -102,6 +114,9 @@ private:
 	
 	//Rain testing
 	Particle rain;
+
+	//Add object testing
+	Scene m_scene;	
 
 	//redo and undo stack
 	std::stack<joint_stack> undo_stack;

@@ -1114,4 +1114,4 @@ main.o main.d : main.cpp /usr/include/c++/4.6/iostream \
  /usr/include/gtkglextmm-1.2/gtkmm/gl/widget.h \
  /usr/include/gtkglextmm-1.2/gtkmm/gl/drawingarea.h appwindow.hpp \
  viewer.hpp scene_lua.hpp scene.hpp algebra.hpp primitive.hpp \
- material.hpp hm.hpp texture.hpp particle.hpp
+ material.hpp hm.hpp texture.hpp particle.hpp object.hpp
