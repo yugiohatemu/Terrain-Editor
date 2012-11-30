@@ -106,11 +106,10 @@ private:
 	Add_Mode a_mode;
 
 	HM m_map;
-	Texture marble;
-	Texture sky;
 	HM m_water;
-	Texture reflection;
-	Texture alpha;
+
+	Texture t_terrain;	
+	Texture t_water;
 	
 	//Rain testing
 	Particle rain;

@@ -26,7 +26,7 @@ GLfloat light_position[] = {5, 10, -10, 0.0 };
 Viewer::Viewer()
 {
   Glib::RefPtr<Gdk::GL::Config> glconfig;
-  glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH |Gdk::GL::MODE_DOUBLE);
+  glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH |Gdk::GL::MODE_DOUBLE|Gdk::GL::MODE_STENCIL);
 
   if (glconfig == 0) {
     // If we can't get this configuration, die
@@ -145,18 +145,28 @@ void Viewer::on_realize()
 
 	//Generate a randome map
 	m_map.randomize();
-	test();
+	//test();
+	//GLuint textures[2];
 
-	marble.set_texture("marble.jpg",GL_RGB,64);
+	//glGenTextures (2, textures );	
+
+	t_terrain.set_type(T_TERRAIN);
+	t_terrain.bind_texture();
+	
+	t_water.set_type(T_WATER);
+	t_water.bind_texture();
+	
+	rain.make_particle();
+
+	
+	/*marble.set_texture("marble.jpg",GL_RGB,64);
 	marble.bind_texture();
 
 	sky.set_texture("oright19.jpg",GL_RGB ,512);
-	sky.bind_texture();
-
-	rain.make_particle();
+	sky.bind_texture();*/
 
 }
-
+/*
 void Viewer::test(){
 	//Water texture special
 	reflection.set_texture("reflection.jpg",GL_RGB,256 );
@@ -190,7 +200,7 @@ void Viewer::test(){
 	
 	
 }
-
+*/
 void Viewer::set_light(){
 	 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);  
@@ -218,7 +228,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	// change to model view for drawing
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
 	set_light();
 	//I think the best way is to change this
@@ -253,10 +263,11 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	//Rain
 	glPushMatrix();
 	rain.draw();
+	glPopMatrix();
 	
+	glPushMatrix();
 	//Terrain
-	glBindTexture(GL_TEXTURE_2D, 0);	
-	marble.apply_texture();
+	t_terrain.apply_texture();
 	float shineBuffer[1] = {20};
 	float specularBuffer[4] = {1,1,1,1};
 	float diffuseBuffer[4] = {0,0.5,0,1};
@@ -266,15 +277,16 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
 	
 	m_map.draw();
-	
+	glPopMatrix();
 	//Water
-	glBindTexture(GL_TEXTURE_2D, 0);
+	
 	//glBlendFunc (GL_ONE, GL_ONE);
+	glPushMatrix();
 	glColor4f(1.0, 1.0, 1.0, 0.5);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
-	glPushMatrix();
 	glTranslated(0,0,2);
-	glBindTexture(GL_TEXTURE_2D, testing);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	t_water.apply_texture();
 	m_water.draw();
 	glPopMatrix();
 		
