@@ -10,7 +10,6 @@
 double pos[2]  = {0};
 bool mouse_pressed[3] ={false,false,false};
 int hit_name, hit_count = 0;
-int joint[2] = {0}; //x , y
 double trans[3] = {0};
 bool clear_redo_stack = false;
 GLuint testing;
@@ -20,17 +19,15 @@ double rotate[3]  = {0};
 int angle = 0;
 double look_at[2] = {1,1};
 
+GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };  
+GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };  
+GLfloat light_position[] = {5, 10, -10, 0.0 }; 
+
 Viewer::Viewer()
 {
   Glib::RefPtr<Gdk::GL::Config> glconfig;
+  glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH |Gdk::GL::MODE_DOUBLE);
 
-  // Ask for an OpenGL Setup with
-  //  - red, green and blue component colour
-  //  - a depth buffer to avoid things overlapping wrongly
-  //  - double-buffered rendering to avoid tearing/flickering
-  glconfig = Gdk::GL::Config::create(Gdk::GL::MODE_RGB |
-                                     Gdk::GL::MODE_DEPTH |
-                                     Gdk::GL::MODE_DOUBLE);
   if (glconfig == 0) {
     // If we can't get this configuration, die
     std::cerr << "Unable to setup OpenGL Configuration!" << std::endl;
@@ -56,16 +53,13 @@ Viewer::Viewer()
   }*/
 	
 	m_mode = GOD_MODE;
+	l_mode = LIGHT_POSITION;
 }
 
-Viewer::~Viewer()
-{
-  // Nothing to do here right now.
+Viewer::~Viewer(){
 }
 
-void Viewer::invalidate()
-{
-  // Force a rerender
+void Viewer::invalidate(){
   Gtk::Allocation allocation = get_allocation();
   get_window()->invalidate_rect( allocation, false);
 }
@@ -79,8 +73,6 @@ void Viewer::reset_position(){
 }
 
 void Viewer::reset_orientation(){
-	Matrix4x4 i;
-	//m_rotation = i;
 	invalidate();
 }
 
@@ -89,10 +81,10 @@ void Viewer::reset_joint(){
 	//actually i prefer inifinite undo here, but lets fix here first
 	while (!redo_stack.empty()){
 			redo_stack.pop();
-  }
+  	}
 	while (!undo_stack.empty()){
 			undo_stack.pop();
-  }
+  	}
 	invalidate();
 }
 
@@ -100,51 +92,29 @@ void Viewer::reset_all(){
 	trans[0] = 0;
 	trans[1] = 0;
 	trans[2] = 0;
-	Matrix4x4 i;
-	//m_rotation = i;
-	root->reset_joint();
 	while (!redo_stack.empty()){
 			redo_stack.pop();
-  }
+  	}
 	while (!undo_stack.empty()){
 			undo_stack.pop();
-  }
+  	}
 	invalidate();
 }	
 
 //For redo and undo joint 
-//We can do this the easy way
-//Every time we pick a node, create a stack
-//It makes sense since picking a node will change the material
 
 void Viewer::undo(){
 	if(!undo_stack.empty()){
-		joint_stack j = undo_stack.top();
-		//std::cerr<<j.x<<" "<<j.y<<std::endl;
-		root->rotate_joint('x', -j.x);
-		root->rotate_joint('y', -j.y);
-		// rotate x , y
 		undo_stack.pop();
-		redo_stack.push(j);
-		if(!j.selected){
-			root->pick(j.name);
-		} 
+		
 		invalidate();//if do that need to judge whether it is by mouse button[0]
 	}
 }
 
 void Viewer::redo(){
 	if(!redo_stack.empty()){
-		joint_stack j = redo_stack.top();
-		
-		root->rotate_joint('x',j.x);
-		root->rotate_joint('y',j.y);
-		
 		redo_stack.pop();
-		undo_stack.push(j);
-		if(!j.selected){
-			root->pick(j.name);
-		} 
+		
 		invalidate();
 	}
 }
@@ -155,28 +125,18 @@ void Viewer::on_realize()
 {
   // Do some OpenGL setup.
   // First, let the base class do whatever it needs to
-  Gtk::GL::DrawingArea::on_realize();
-  
-  Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
-  
-  if (!gldrawable)
-    return;
+	Gtk::GL::DrawingArea::on_realize();
 
-  if (!gldrawable->gl_begin(get_gl_context()))
-    return;
+	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 
-  glShadeModel(GL_SMOOTH);
-  glClearColor( 0.5, 0.6, 0.7, 0.0 );
-  glEnable(GL_DEPTH_TEST);
+	if (!gldrawable)
+		return;
+
+	if (!gldrawable->gl_begin(get_gl_context()))
+		return;
+
 	
-	//so the lightint is here, damn it...
-	GLfloat ambient[] = { 0.0, 0.0, 0.0, 1.0 };  
-	  GLfloat diffuse[] = { 1.0, 1.0, 1.0, 1.0 };  
-	  GLfloat position[] = {5, 10, -10, 0.0 };  
-  		
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);  
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);  
-	glLightfv(GL_LIGHT0, GL_POSITION, position);
+	glClearColor( 0.5, 0.6, 0.7, 0.0 );
 
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHTING);  
@@ -184,23 +144,9 @@ void Viewer::on_realize()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
-
+	glShadeModel(GL_SMOOTH);
 	gldrawable->gl_end();
 
-	//TODO:Move later
-	//m_mode = Edit_Pos;
-	for(int i =0;i<4;i+=1){
-		options[i] = false;
-	}
-
-	//set up call list
-	glNewList(OBJ_SPHERE, GL_COMPILE);
-	GLUquadricObj *quadric = gluNewQuadric();
-	gluQuadricDrawStyle(quadric, GLU_FILL );
-	gluSphere( quadric , 1 , 20 , 20 );  
-	glEndList();
-	
-	//TODO:recover
 	//Generate a randome map
 	m_map.randomize();
 	test();
@@ -208,13 +154,11 @@ void Viewer::on_realize()
 	marble.set_texture("marble.jpg",GL_RGB,64);
 	marble.bind_texture();
 
-	
 	sky.set_texture("oright19.jpg",GL_RGB ,512);
 	sky.bind_texture();
 
 	rain.make_particle();
 
-	//glDisable(GL_TEXTURE_2D);
 }
 
 void Viewer::test(){
@@ -269,11 +213,19 @@ void Viewer::test(){
 	
 }
 
+void Viewer::set_light(){
+	 
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);  
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);  
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
+	
+}
 
-bool Viewer::on_expose_event(GdkEventExpose* event)
-{
+bool Viewer::on_expose_event(GdkEventExpose* event){
 	Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
+
+	
 
 	if (!gldrawable) return false;
 
@@ -290,14 +242,9 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	// change to model view for drawing
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	// Clear framebuffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
 
-	//TODO: remeber to move to gl select
-	
-	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_TEXTURE_2D);
+	set_light();
 	//I think the best way is to change this
 	if(m_mode == GOD_MODE){
 		gluLookAt(0,0,trans[2]+40, 0,0,-1000,0,1,0);
@@ -308,12 +255,20 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 		
 		double height= m_map.get_height(fov_pos[0],fov_pos[2]);
 		gluLookAt(fov_pos[0],fov_pos[1]+height+1,fov_pos[2]+40,0,0,-1000,0,1,0);
-		//gluLookAt(fov_pos[0],fov_pos[1]+height+1,fov_pos[2]+40,look_at[0],look_at[1],-1000,0,1,0);
+		
 		glRotated(-90,1,0,0);
 		glRotated(look_at[0],0,0,1); //left right
-		//glRotated(look_at[1],0,1,0); //up down
+		glRotated(look_at[1],0,1,0); //up down
 		//Now get info from the HM
 	}
+
+	//Draw indicator for light. or sun 
+	glPushMatrix();
+	glTranslated(-light_position[0],-light_position[1],-light_position[2]);
+	GLUquadricObj *quadric = gluNewQuadric();
+	gluSphere( quadric , 1 , 20 , 20 );
+	glPopMatrix();
+
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	rain.draw();
@@ -332,8 +287,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	m_map.draw();
 
 	
-
-	//WARNING:Put the alpha blend last to draw, ie water
 	//test() for skybox
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//glBlendFunc (GL_ONE, GL_ONE);
@@ -346,7 +299,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 	m_water.draw();
 	glPopMatrix();
 		
-	
 	//Finish drawing
 	glPopMatrix();
 	gldrawable->swap_buffers();
@@ -432,19 +384,27 @@ void Viewer::gl_select(int x, int y){
 void Viewer::get_key_input(char input){
 	//std::cerr<<input<<std::endl;
 	if(m_mode == NORMAL_MODE){
-		switch(input){
-			case 'w':
-				fov_pos[2] -= 1;
-				break;
-			case 'a':
-				fov_pos[0] -= 1;
-				break;			
-			case 's':
-				fov_pos[2] += 1;
-				break;
-			case 'd':
-				fov_pos[0] += 1;
-				break;
+		if(input == 'w'){
+			fov_pos[2] -= 1;
+		}else if(input == 'a'){
+			fov_pos[0] -= 1;
+		}else if(input == 's'){
+			fov_pos[2] += 1;
+		}else if(input == 'd'){
+			fov_pos[0] += 1;
+		}
+		invalidate();
+	}else{ //GOD_MODE
+		if(l_mode == LIGHT_POSITION){
+			if(input == 'w'){
+				light_position[0] += 0.1;
+			}else if(input == 'a'){
+				light_position[1] -= 0.1;
+			}else if(input == 's'){
+				light_position[0] -= 0.1;
+			}else if(input == 'd'){
+				light_position[1] += 0.1;
+			}
 		}
 		invalidate();
 	}
@@ -455,11 +415,8 @@ bool Viewer::on_button_press_event(GdkEventButton* event){
 	pos[0] =  event->x;
 	pos[1] =  event->y;
 	mouse_pressed[event->button-1] = true;
-	joint[0] = 0;
-	joint[1] = 0;
 	
- 	
- 	 return true;
+ 	return true;
 }
 
 bool Viewer::on_button_release_event(GdkEventButton* event){
@@ -480,11 +437,9 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 		angle += rx;
 		if(mouse_pressed[0]){ //rotate x
 			trans[0] += rx ;
-			
 		}
 		if(mouse_pressed[1]){ //rotate y
 			trans[1] += ry ; 
-			
 		}
 		if(mouse_pressed[2]){ //rotate z
 			trans[2] += ry;
@@ -493,17 +448,12 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	}else if(m_mode == NORMAL_MODE){
     	//need to capture the mouse motion
 		//up,down,left,right
-		//
-		if(disc_x>0){
-			look_at[0] -= 0.1;	
-		}else{
-			look_at[0] += 0.1;	
-		}
-		if(disc_y>0){ //y direction
-			look_at[1] -= 0.5;	
-		}else{
-			look_at[1] += 0.5;	
-		}
+
+		double ry = (disc_y > 0) ? 0.1 : -0.1;
+		double rx = (disc_x > 0) ? 0.1 : -0.1;
+	
+		look_at[0] -= rx;	
+		look_at[1] -= ry;	
 		
 	}
 
@@ -563,3 +513,9 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	//m_water.water_test();
 	glPopMatrix();
 */
+/*	//set up call list
+	glNewList(OBJ_SPHERE, GL_COMPILE);
+	GLUquadricObj *quadric = gluNewQuadric();
+	gluQuadricDrawStyle(quadric, GLU_FILL );
+	gluSphere( quadric , 1 , 20 , 20 );  
+	glEndList();*/

@@ -11,7 +11,7 @@ public:
 		m_viewer.root = r;
 	}
 protected:
-
+	virtual bool on_key_press_event( GdkEventKey *ev );
 private:
   // A "vertical box" which holds everything in our window
   Gtk::VBox m_vbox;

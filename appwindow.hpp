@@ -13,18 +13,17 @@ public:
 protected:
 	virtual bool on_key_press_event( GdkEventKey *ev );
 private:
-  // A "vertical box" which holds everything in our window
-  Gtk::VBox m_vbox;
+	// A "vertical box" which holds everything in our window
+	Gtk::VBox m_vbox;
 
-  // The menubar, with all the menus at the top of the window
-  Gtk::MenuBar m_menubar;
-  // Each menu itself
-  Gtk::Menu m_menu_app;
+	// The menubar, with all the menus at the top of the window
+	Gtk::MenuBar m_menubar;
+	// Each menu itself
+	Gtk::Menu m_menu_app;
 	Gtk::Menu m_menu_mode;
-	Gtk::Menu m_menu_edit;
-	Gtk::Menu m_menu_options;
-  // The main OpenGL area
-  Viewer m_viewer;
+	Gtk::Menu m_menu_light;
+	// The main OpenGL area
+	Viewer m_viewer;
 	
 	
 };

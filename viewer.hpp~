@@ -40,16 +40,12 @@ struct joint_stack{
 // The "main" OpenGL widget
 class Viewer : public Gtk::GL::DrawingArea {
 public:
-  Viewer();
-  virtual ~Viewer();
+  	Viewer();
+  	virtual ~Viewer();
 	SceneNode* root ;
-  // A useful function that forces this widget to rerender. If you
-  // want to render a new frame, do not call on_expose_event
-  // directly. Instead call this, which will cause an on_expose_event
-  // call when the time is right.
-  void invalidate();
-  
-	void reset_position();
+
+  	void invalidate();
+  	void reset_position();
 	void reset_orientation();
 	void reset_joint();
 	void reset_all();	
@@ -65,52 +61,37 @@ public:
 		m_mode = m;
 	}
 	
-	enum Option{
-		Draw_Circle = 0,
-		Z_Buffer,
-		Back_Face,
-		Front_Face
+	enum Light_Mode{
+		LIGHT_POSITION,
+		LIGHT_AMBIENT
 	};
-		
-	void set_option(Option p){
-		options[p] = !options[p];
-		invalidate();
+	
+	void set_light_mode(Light_Mode l){
+		l_mode = l;
 	}
-	/*void vCalcRotVec(float fNewX, float fNewY,float fOldX, float fOldY,float fDiameter,
-                 float *fVecX, float *fVecY, float *fVecZ);
-	void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ);
-	void vPerformRotate(float fOldX, float fNewX, float fOldY, float fNewY) ;
-	void vTranslate(float fTrans, char cAxis);*/
-	//void KeyboardFunc (unsigned char key, int x, int y);
+	
 	void get_key_input(char input);
 protected:
 
-  // Called when GL is first initialized
-  virtual void on_realize();
-  // Called when our window needs to be redrawn
-  virtual bool on_expose_event(GdkEventExpose* event);
-  // Called when the window is resized
-  virtual bool on_configure_event(GdkEventConfigure* event);
-  // Called when a mouse button is pressed
-  virtual bool on_button_press_event(GdkEventButton* event);
-  // Called when a mouse button is released
-  virtual bool on_button_release_event(GdkEventButton* event);
-  // Called when the mouse moves
-  virtual bool on_motion_notify_event(GdkEventMotion* event);
+	virtual void on_realize();
+	virtual bool on_expose_event(GdkEventExpose* event);
+	virtual bool on_configure_event(GdkEventConfigure* event);
+	virtual bool on_button_press_event(GdkEventButton* event);
+	virtual bool on_button_release_event(GdkEventButton* event);
+	virtual bool on_motion_notify_event(GdkEventMotion* event);
 
   // Draw a circle for the trackball, with OpenGL commands.
   // Assumes the context for the viewer is active.
 	void gl_select(int x, int y);
 	void list_hits(GLint hits, GLuint *names);
 	
-
 	//Testing
 	void test();
 private:
-	bool options[4];
-
-
+	
 	Game_Mode m_mode;
+	Light_Mode l_mode;
+
 	HM m_map;
 	Texture marble;
 	Texture sky;

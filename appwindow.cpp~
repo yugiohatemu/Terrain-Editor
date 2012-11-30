@@ -13,28 +13,21 @@ AppWindow::AppWindow(){
 	m_menu_app.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"), sigc::mem_fun(*this, &AppWindow::hide)));
 
 	// Set up the edit menu 
-	sigc::slot1<void, Viewer::Edit_Mode> game_slot = sigc::mem_fun(m_viewer, &Viewer::set_game_mode);
+	sigc::slot1<void, Viewer::Game_Mode> game_slot = sigc::mem_fun(m_viewer, &Viewer::set_game_mode);
 	Gtk::RadioButtonGroup game_group;
 	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_God mode", Gtk::AccelKey("g"),sigc::bind( game_slot, Viewer::GOD_MODE )));
 	m_menu_mode.items().push_back( RadioMenuElem(game_group,"_Normal mode", Gtk::AccelKey("n"),sigc::bind( game_slot, Viewer::NORMAL_MODE )));
 
-	//edit
-	m_menu_edit.items().push_back( MenuElem("_Undo", Gtk::AccelKey("u"),sigc::mem_fun(m_viewer, &Viewer::undo)));
-	m_menu_edit.items().push_back( MenuElem("_Redo", Gtk::AccelKey("r"), sigc::mem_fun(m_viewer, &Viewer::redo)));
-
-	// Set up option menu
-	sigc::slot1<void, Viewer::Option> option_slot = sigc::mem_fun(m_viewer, &Viewer::set_option);	
-	//Gtk::CheckButtonGroup option_group;
-	m_menu_options.items().push_back(CheckMenuElem("_Circle", Gtk::AccelKey("c"), sigc::bind(option_slot, Viewer::Draw_Circle )));	
-	m_menu_options.items().push_back(CheckMenuElem("_Z-buffer", Gtk::AccelKey("z"), sigc::bind(option_slot, Viewer::Z_Buffer )));	
-	m_menu_options.items().push_back(CheckMenuElem("_Backface cull", Gtk::AccelKey("b"), sigc::bind(option_slot, Viewer::Back_Face )));	
-	m_menu_options.items().push_back(CheckMenuElem("_Fronface cull", Gtk::AccelKey("f"), sigc::bind(option_slot, Viewer::Front_Face )));	
-
+	// Set up the light menu 
+	sigc::slot1<void, Viewer::Light_Mode> light_slot = sigc::mem_fun(m_viewer, &Viewer::set_light_mode);	
+	
+	m_menu_light.items().push_back(CheckMenuElem("_Light position", Gtk::AccelKey("p"), sigc::bind(light_slot, Viewer::LIGHT_POSITION )));	
+	m_menu_light.items().push_back(CheckMenuElem("_Light ambient", Gtk::AccelKey("a"), sigc::bind(light_slot, Viewer::LIGHT_AMBIENT )));			
+	
 	// Set up the menu bar
 	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", m_menu_app));
 	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Mode", m_menu_mode));
-	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Edit", m_menu_edit));
-	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Options", m_menu_options));
+	m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Light", m_menu_light));
 
 	// Pack in our widgets
 	add(m_vbox);
