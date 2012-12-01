@@ -5,7 +5,7 @@
 #include "hm.hpp"
 #include <time.h>
 
-const double MAX_DISPLACEMENT = 6.0;
+const double MAX_DISPLACEMENT = 15.0;
 
 HM::HM(){
 	

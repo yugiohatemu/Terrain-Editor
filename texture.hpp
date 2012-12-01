@@ -7,7 +7,8 @@
 enum TEXTURE_TYPE{
 	T_TERRAIN,
 	T_WATER,
-	T_SKYBOX
+	T_SKYBOX,
+	T_BUMP
 };
 
 

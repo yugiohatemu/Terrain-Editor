@@ -25,7 +25,7 @@ public:
 	unsigned int get_id();
 	//void load_texture();
 	void load_texture(char * name,int format, unsigned char data[]);
-	void set_type(TEXTURE_TYPE t, int id);
+	void set_type(TEXTURE_TYPE t);
 
 private:
 	//string	m_name;

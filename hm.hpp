@@ -8,7 +8,7 @@
 
 #define OBJ_PLANE_GRID 2
 #define OBJ_PLANE_QUAD 3
-const int MAP_BOUND = 51;
+const int MAP_BOUND = 151;
 
 //Should we let the user decide the size
 //use a small map for now

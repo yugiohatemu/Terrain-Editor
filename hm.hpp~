@@ -26,7 +26,7 @@ private:
 	Point3D height_map[MAP_BOUND][MAP_BOUND];
 	Vector3D normal_map[(MAP_BOUND-1)][(MAP_BOUND-1)];
 	
-	double make_rand(int range);
+	int make_rand(int range);
 	void draw_grid_list();
 	void draw_quad_list();
 	void make_circle(int round);

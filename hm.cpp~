@@ -5,7 +5,7 @@
 #include "hm.hpp"
 #include <time.h>
 
-const double MAX_DISPLACEMENT = 6.0;
+const double MAX_DISPLACEMENT = 15.0;
 
 HM::HM(){
 	
@@ -147,10 +147,8 @@ void HM::draw_grid_list(){
 }
 
 //Return a random in from 0 to (range-1)
-double HM::make_rand(int range){
-	double r= ((double)rand()/(double)RAND_MAX)+(double)(std::rand()%(int)range);
-	return r;
-	//return (std::rand()%range);
+int HM::make_rand(int range){
+	return (std::rand()%range);
 }
 
 //Use circle algorithm for genertaion
@@ -178,7 +176,7 @@ void HM::make_circle(int round){
 }
 
 double HM::get_displacement(int round){
-	double disp = MAX_DISPLACEMENT- round * 0.1;
+	double disp = MAX_DISPLACEMENT- round * 0.2;
 	if(disp< 0.1){
 		disp = 0.1;
 	}

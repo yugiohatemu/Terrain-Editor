@@ -267,7 +267,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	glTranslated(-light_position[0],-light_position[1],-light_position[2]);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	GLUquadricObj *quadric = gluNewQuadric();
-	gluSphere( quadric ,  , 20 , 20 );
+	gluSphere( quadric , 1 , 20 , 20 );
 	glPopMatrix();
 
 	glPushMatrix();
@@ -284,7 +284,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	glPushMatrix();
 	float shineBuffer[1] = {20};
 	float specularBuffer[4] = {1,1,1,1};
-	float diffuseBuffer[4] = {0,0.6,0,.95};
+	float diffuseBuffer[4] = {0,0.8,0,1};
 	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	

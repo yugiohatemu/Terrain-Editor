@@ -147,7 +147,7 @@ void Viewer::on_realize()
 	m_map.randomize();
 	//test();
 
-	t_terrain.set_type(T_TERRAIN);
+	t_terrain.set_type(T_BUMP);
 	t_terrain.bind_texture();
 	
 	t_water.set_type(T_WATER);
@@ -284,7 +284,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	glPushMatrix();
 	float shineBuffer[1] = {20};
 	float specularBuffer[4] = {1,1,1,1};
-	float diffuseBuffer[4] = {0,0.6,0,.95};
+	float diffuseBuffer[4] = {0,0.8,0,1};
 	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	

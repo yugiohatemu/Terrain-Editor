@@ -6,6 +6,7 @@
 #include <jpeglib.h>
 #include <jerror.h>
 #include <iostream>
+#include "algebra.hpp"
 
 Texture::Texture(){
 	m_id = 0;
@@ -17,49 +18,70 @@ Texture::Texture(TEXTURE_TYPE t){
 	
 }
 
-void Texture::set_type(TEXTURE_TYPE t,int id){
+void Texture::set_type(TEXTURE_TYPE t){
 	m_type = t;
-	m_id = id;
+	//m_id = id;
 }
-/*
-void Texture::set_texture(std::string name, int format,unsigned int size){
-	m_name = name;
-	m_format =format;
-	m_size = size;
-}*/
+
 
 Texture::~Texture(){
 }
-/*
-unsigned char* Texture::get_data(){
-	return m_data;
-}
-*/
+
 unsigned int Texture::get_id(){
 	return m_id;
 }
+/*
+void Texture::test(){
+		m_size = 512;
+
+		unsigned char total_texture[3*m_size*m_size];
+		unsigned char colour_texture[3*m_size*m_size];
+		unsigned char normal_texture[3*m_size*m_size];
+
+		load_texture("Jungle Floor.jpg",GL_RGB,colour_texture);
+		load_texture("normal.jpg",GL_RGB,normal_texture);
+		
+		for (int i = 0; i < m_size * m_size; i++){
+			Vertext3D c(colour_texture[3*i]*normal_texture[3*i],colour_texture[3*i+1]*normal_texture[3*i+1],colour_texture[3*i+2]*normal_texture[3*i+2]);
+			c.normalize();
+		  	total_texture[3*i] = c[0];
+		  	total_texture[3*i+1] = c[1];
+		  	total_texture[3*i+2] = c[2];
+		  	
+    	}
+		glGenTextures (1, &m_id);
+		glBindTexture (GL_TEXTURE_2D, m_id);
+		
+		gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB, m_size, m_size, GL_RGB, GL_UNSIGNED_BYTE, total_texture);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+}*/
+
 
 void Texture::bind_texture(){
 	//Bind the texture
 	if(m_type == T_WATER){
+		
 		m_size = 256;
-
+		glGenTextures (1, &m_id);
+		glBindTexture (GL_TEXTURE_2D, m_id);
 		unsigned char total_texture[4 * m_size * m_size];
 		unsigned char caustic_texture[3 * m_size * m_size];
 		unsigned char alpha_texture[ m_size * m_size];
 
 		load_texture("reflection.jpg",GL_RGB,caustic_texture);
 		load_texture("alpha.jpg",GL_ALPHA,alpha_texture);
-		
+
 		for (int i = 0; i < m_size * m_size; i++){
-		  total_texture[4 * i] = caustic_texture[3 * i];
-		  total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
-		  total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
-		  total_texture[4 * i + 3] = alpha_texture[i];
-    	}
-		glGenTextures (1, &m_id);
-		glBindTexture (GL_TEXTURE_2D, m_id);
-		
+			total_texture[4 * i] = caustic_texture[3 * i];
+			total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
+			total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
+			total_texture[4 * i + 3] = alpha_texture[i];
+		}
 		gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, m_size, m_size, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -77,9 +99,9 @@ void Texture::bind_texture(){
 		glBindTexture (GL_TEXTURE_2D, m_id);
 		
 		if(m_type == T_TERRAIN ){
-			m_size = 64;
+			m_size = 512;
 			unsigned char total_texture [3 * m_size * m_size];
-			load_texture("marble.jpg",GL_RGB,total_texture);
+			load_texture("Jungle Floor.jpg",GL_RGB,total_texture);
 			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB,m_size, m_size, GL_RGB,GL_UNSIGNED_BYTE, total_texture);
 			
 		}else if(m_type == T_SKYBOX){
@@ -88,15 +110,31 @@ void Texture::bind_texture(){
 			load_texture("otop6.jpg",GL_RGB,total_texture);
 			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB,m_size, m_size, GL_RGB,GL_UNSIGNED_BYTE, total_texture);
 			
+		}else if(m_type == T_BUMP){
+			m_size = 512;
+
+			//unsigned char total_texture[3*m_size*m_size];
+			unsigned char colour_texture[3*m_size*m_size];
+			unsigned char bump_texture[3*m_size*m_size];
+
+			load_texture("Jungle Floor.jpg",GL_RGB,colour_texture);
+			load_texture("normal2.jpg",GL_RGB,bump_texture);
+		
+			for (int i = 0; i < m_size * m_size; i++){
+				bump_texture[3*i] = (bump_texture[3*i]+colour_texture[3*i])/2;
+			  	bump_texture[3*i+1] = (bump_texture[3*i+1]+colour_texture[3*i+1])/2; 
+				bump_texture[3*i+2] = (bump_texture[3*i+2]+colour_texture[3*i+2])/2;	
+			}
+			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB, m_size, m_size, GL_RGB, GL_UNSIGNED_BYTE, bump_texture);
 		}
-			
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
 		//Texture mapping format
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		//Modulate format
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		
 
 		
 	}
