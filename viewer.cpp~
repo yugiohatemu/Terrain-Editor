@@ -140,14 +140,17 @@ void Viewer::on_realize()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
+	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+ 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glShadeModel(GL_SMOOTH);
 	gldrawable->gl_end();
 
 	//Generate a randome map
 	m_map.randomize();
+	m_water.water_test();
 	//test();
 
-	t_terrain.set_type(T_TERRAIN);
+	t_terrain.set_type(T_BUMP);
 	t_terrain.bind_texture();
 	
 	t_water.set_type(T_WATER);
@@ -261,9 +264,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	glPopMatrix();
 
 	//Draw indicator for light. or sun 
-
+/*
 	glPushMatrix();
-	
 	glTranslated(-light_position[0],-light_position[1],-light_position[2]);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	GLUquadricObj *quadric = gluNewQuadric();
@@ -279,7 +281,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	glPushMatrix();
 	rain.draw();
 	glPopMatrix();
-	
+	*/
 	//Terrain
 	glPushMatrix();
 	float shineBuffer[1] = {20};
@@ -295,17 +297,26 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 	
 	//Water
 	//glBlendFunc (GL_ONE, GL_ONE);
+	glEnable(GL_BLEND);;
+	glPushMatrix();//glBlendFunc (GL_ONE, GL_ONE);
 	
-	glPushMatrix();
-	glColor4f(1.0, 1.0, 1.0, 0.5);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
+	glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_ALPHA) ;
+	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glTranslated(0,0,2);
-	//glBindTexture(GL_TEXTURE_2D, 0);
+
+	float m_shineBuffer[1] = {60};
+	//float m_specularBuffer[4] = {1,1,1,1};
+	float m_diffuseBuffer[4] = {0,0.5,0.7,0.9};
 	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, m_shineBuffer);
+	//glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, m_specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, m_diffuseBuffer);	
+
 	t_water.apply_texture();
+	m_water.water_test();
 	m_water.draw();
 	glPopMatrix();
-		
+	glDisable(GL_BLEND);
 	//Finish drawing
 	glPopMatrix();
 	gldrawable->swap_buffers();

@@ -91,7 +91,7 @@ void Texture::bind_texture(){
 		glEnable (GL_TEXTURE_GEN_T);
 		glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 		glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		
 
 	}else{
@@ -113,7 +113,6 @@ void Texture::bind_texture(){
 		}else if(m_type == T_BUMP){
 			m_size = 512;
 
-			//unsigned char total_texture[3*m_size*m_size];
 			unsigned char colour_texture[3*m_size*m_size];
 			unsigned char bump_texture[3*m_size*m_size];
 

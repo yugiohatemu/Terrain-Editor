@@ -6,7 +6,7 @@
 #include <time.h>
 
 const double MAX_DISPLACEMENT = 15.0;
-
+static int t = 0;
 HM::HM(){
 	
 	int offset =  (MAP_BOUND/2);
@@ -43,20 +43,13 @@ void HM::draw(){
 }
 
 void HM::water_test(){
-	//Update in a loop manner
-	//get current time , out put in cos
-	time_t second = time (NULL);
-	double delta = cos((second%360)*M_PI);
-
+	t+=1;
 	for(int i =0;i<MAP_BOUND;i+=1){ 
 		for(int j = 0;j<MAP_BOUND;j+=1){
-			//TODO: when implant wave foam, we can add x and y in it
-			//For now only care about z
-			height_map[i][j][2] =((i%3)+(j%3))*delta ;
+			 height_map[i][j][2] = cos((i+j+t)*7 * M_PI/180);
 		}
 	}
-	
-	//Update normal
+
 	for(int i =0;i<MAP_BOUND-1;i+=1){ 
 		for(int j = 0;j<MAP_BOUND-1;j+=1){
 			Vector3D x = height_map[i+1][j]-height_map[i][j] ;
@@ -64,7 +57,7 @@ void HM::water_test(){
 			Vector3D n = x.cross(y);
 			n.normalize();
 			normal_map[i][j] = n;
-			
+	
 		}
 	}
 
