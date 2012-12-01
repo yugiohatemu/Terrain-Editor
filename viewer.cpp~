@@ -16,7 +16,7 @@ GLuint testing;
 
 double fov_pos[3] = {0};
 double rotate[3]  = {0};
-int angle = 0;
+
 double look_at[2] = {1,1};
 
 GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };  
@@ -146,61 +146,17 @@ void Viewer::on_realize()
 	//Generate a randome map
 	m_map.randomize();
 	//test();
-	GLuint textures[2];
 
-	glGenTextures (2, textures );	
-
-	t_terrain.set_type(T_TERRAIN, textures[0]);
+	t_terrain.set_type(T_TERRAIN);
 	t_terrain.bind_texture();
 	
-	t_water.set_type(T_WATER,textures[1]);
+	t_water.set_type(T_WATER);
 	t_water.bind_texture();
 	
 	rain.make_particle();
 
-	
-	/*marble.set_texture("marble.jpg",GL_RGB,64);
-	marble.bind_texture();
-
-	sky.set_texture("oright19.jpg",GL_RGB ,512);
-	sky.bind_texture();*/
-
 }
-/*
-void Viewer::test(){
-	//Water texture special
-	reflection.set_texture("reflection.jpg",GL_RGB,256 );
-	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
 
-	reflection.load_texture();
-	alpha.load_texture();	
-
-	unsigned char total_texture[4 * 256 * 256];
-	unsigned char * caustic_texture = reflection.get_data();
-	unsigned char * alpha_texture = alpha.get_data();
-	glGenTextures (1, &testing);
-	
-	for (int i = 0; i < 256 * 256; i++){
-      total_texture[4 * i] = caustic_texture[3 * i];
-      total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
-      total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
-      total_texture[4 * i + 3] = alpha_texture[i];
-    }
-	glBindTexture (GL_TEXTURE_2D, testing);
-	gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glEnable (GL_TEXTURE_GEN_S);
-	glEnable (GL_TEXTURE_GEN_T);
-	glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-	glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	
-	
-}
-*/
 void Viewer::set_light(){
 	 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);  
@@ -208,6 +164,59 @@ void Viewer::set_light(){
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
 	
+}
+
+void Viewer::test(){
+	//start
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); //disable the color mask
+    glDepthMask(GL_FALSE); //disable the depth mask
+
+    glEnable(GL_STENCIL_TEST); //enable the stencil testing
+
+    glStencilFunc(GL_ALWAYS, 1, 0xFFFFFFFF);
+    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); //set the stencil buffer to replace our next lot of data
+	
+	glTranslated(0,0,2);
+	//t_water.apply_texture();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	float m_shineBuffer[1] = {60};
+	float m_specularBuffer[4] = {1,1,1,1};
+	float m_diffuseBuffer[4] = {1,1,1,0.95};
+	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, m_shineBuffer);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, m_specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, m_diffuseBuffer);
+    m_water.draw(); //set the data plane to be replaced
+	
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); //enablethe color mask
+    glDepthMask(GL_TRUE); //enable the depth mask
+
+    glStencilFunc(GL_EQUAL, 1, 0xFFFFFFFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); //set the stencilbuffer to keep our next lot of data
+
+    glDisable(GL_DEPTH_TEST); //disable depth testing of thereflection
+    glPushMatrix();
+    glScalef(1.0f, -1.0f, 1.0f); //flip the reflection vertically
+
+   	//glTranslated(5,5,0); //translate the reflection onto thedrawing plane
+    //glRotatef(60,0,1,0); //rotate the reflection
+	//t_terrain.apply_texture();
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	float shineBuffer[1] = {0};
+	float specularBuffer[4] = {1,1,1,1};
+	float diffuseBuffer[4] = {0,1,0,1};
+	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
+	t_terrain.apply_texture();
+	//m_map.draw();
+    GLUquadricObj *quadric = gluNewQuadric();
+	gluSphere( quadric , 3 , 20 , 20 );   //draw the square as our reflection
+    glPopMatrix();
+    glEnable(GL_DEPTH_TEST); //enable the depth testing
+
+    glDisable(GL_STENCIL_TEST); //disable the stencil testing
 }
 
 bool Viewer::on_expose_event(GdkEventExpose* event){
@@ -247,45 +256,52 @@ bool Viewer::on_expose_event(GdkEventExpose* event){
 		glRotated(look_at[1],0,1,0); //up down
 		//Now get info from the HM
 	}
+	glPushMatrix();
+	//test();
+	glPopMatrix();
 
 	//Draw indicator for light. or sun 
+
 	glPushMatrix();
+	
 	glTranslated(-light_position[0],-light_position[1],-light_position[2]);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	GLUquadricObj *quadric = gluNewQuadric();
-	gluSphere( quadric , 1 , 20 , 20 );
+	gluSphere( quadric ,  , 20 , 20 );
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslated(0,0,10);
 	m_scene.draw();
 	glPopMatrix();
-
+	
 	//Rain
 	glPushMatrix();
 	rain.draw();
 	glPopMatrix();
 	
-	glPushMatrix();
 	//Terrain
-	t_terrain.apply_texture();
+	glPushMatrix();
 	float shineBuffer[1] = {20};
 	float specularBuffer[4] = {1,1,1,1};
-	float diffuseBuffer[4] = {0,0.5,0,1};
+	float diffuseBuffer[4] = {0,0.6,0,.95};
 	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
 	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
-	
+	t_terrain.apply_texture();
 	m_map.draw();
 	glPopMatrix();
-	//Water
 	
+	//Water
 	//glBlendFunc (GL_ONE, GL_ONE);
+	
 	glPushMatrix();
 	glColor4f(1.0, 1.0, 1.0, 0.5);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 	glTranslated(0,0,2);
 	//glBindTexture(GL_TEXTURE_2D, 0);
+	
 	t_water.apply_texture();
 	m_water.draw();
 	glPopMatrix();
@@ -365,7 +381,6 @@ void Viewer::gl_select(int x, int y){
 	GLint hits = glRenderMode(GL_RENDER);
 	list_hits(hits, buff);
 	glMatrixMode(GL_MODELVIEW);
-	//TODO:finaly draw again for applying phong change
 	invalidate();
 }
 
@@ -382,7 +397,7 @@ void Viewer::get_key_input(char input){
 			fov_pos[0] += 1;
 		}
 		invalidate();
-	}else{ //GOD_MODE
+	}else if(m_mode == GOD_MODE){ //GOD_MODE
 		if(l_mode == LIGHT_POSITION){
 			if(input == 'w'){
 				light_position[0] -= 0.5;
@@ -427,7 +442,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	if(m_mode == GOD_MODE ){
 		int ry = (disc_y > 0) ? 1 : -1;
 		int rx = (disc_x > 0) ? 1 : -1;
-		angle += rx;
+		
 		if(mouse_pressed[0]){ //rotate x
 			trans[0] += rx ;
 			invalidate();
@@ -459,53 +474,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	return true;
 }
 
-//TODO:Remeber to fix texture for proper mapping DO NOT DELETE
-/*
-	reflection.set_texture("reflection.jpg",GL_RGB,256 );
-	alpha.set_texture("alpha.jpg",GL_ALPHA,256 );	
 
-	reflection.load_texture();
-	alpha.load_texture();	
-
-	unsigned char total_texture[4 * 256 * 256];
-	unsigned char * caustic_texture = reflection.get_data();
-	unsigned char * alpha_texture = alpha.get_data();
-	glGenTextures (1, &test);
-	
-	for (int i = 0; i < 256 * 256; i++){
-      total_texture[4 * i] = caustic_texture[3 * i];
-      total_texture[4 * i + 1] = caustic_texture[3 * i + 1];
-      total_texture[4 * i + 2] = caustic_texture[3 * i + 2];
-      total_texture[4 * i + 3] = alpha_texture[i];
-    }
-	glBindTexture (GL_TEXTURE_2D, test);
-	gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGBA, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE,  total_texture);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glEnable (GL_TEXTURE_GEN_S);
-	glEnable (GL_TEXTURE_GEN_T);
-	glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-	glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);*/
-/*
-	//Water
-	glPushMatrix();
-	glTranslated(0,0, 5);
-	float shineBuffer[1] = {60};
-	float specularBuffer[3] = {1,1,1};
-	float diffuseBuffer[3] = {1,1,1};
-	
-	diffuseBuffer[0] = 1; diffuseBuffer[1] = 1;diffuseBuffer[2] = 1; diffuseBuffer[3] = 0;shineBuffer[0] = 60;
- 	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, shineBuffer);
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, specularBuffer);	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseBuffer);
-	//reflection.apply_texture();
-	glBindTexture(GL_TEXTURE_2D, test);
-	m_water.draw();
-	//m_water.water_test();
-	glPopMatrix();
-*/
 /*	//set up call list
 	glNewList(OBJ_SPHERE, GL_COMPILE);
 	GLUquadricObj *quadric = gluNewQuadric();
@@ -532,3 +501,10 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event){
 	glEnd();
 
 	glPopMatrix();	*/	
+/*float m_shineBuffer[1] = {60};
+	float m_specularBuffer[4] = {1,1,1,1};
+	float m_diffuseBuffer[4] = {1,1,1,0.95};
+	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, m_shineBuffer);
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, m_specularBuffer);	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, m_diffuseBuffer);	*/
