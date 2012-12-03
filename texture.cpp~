@@ -30,40 +30,10 @@ Texture::~Texture(){
 unsigned int Texture::get_id(){
 	return m_id;
 }
-/*
-void Texture::test(){
-		m_size = 512;
-
-		unsigned char total_texture[3*m_size*m_size];
-		unsigned char colour_texture[3*m_size*m_size];
-		unsigned char normal_texture[3*m_size*m_size];
-
-		load_texture("Jungle Floor.jpg",GL_RGB,colour_texture);
-		load_texture("normal.jpg",GL_RGB,normal_texture);
-		
-		for (int i = 0; i < m_size * m_size; i++){
-			Vertext3D c(colour_texture[3*i]*normal_texture[3*i],colour_texture[3*i+1]*normal_texture[3*i+1],colour_texture[3*i+2]*normal_texture[3*i+2]);
-			c.normalize();
-		  	total_texture[3*i] = c[0];
-		  	total_texture[3*i+1] = c[1];
-		  	total_texture[3*i+2] = c[2];
-		  	
-    	}
-		glGenTextures (1, &m_id);
-		glBindTexture (GL_TEXTURE_2D, m_id);
-		
-		gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB, m_size, m_size, GL_RGB, GL_UNSIGNED_BYTE, total_texture);
-		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-}*/
-
 
 void Texture::bind_texture(){
 	//Bind the texture
+	glEnable(GL_TEXTURE_2D);
 	if(m_type == T_WATER){
 		
 		m_size = 256;
@@ -91,7 +61,7 @@ void Texture::bind_texture(){
 		glEnable (GL_TEXTURE_GEN_T);
 		glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 		glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 		
 
 	}else{
@@ -104,20 +74,54 @@ void Texture::bind_texture(){
 			load_texture("Jungle Floor.jpg",GL_RGB,total_texture);
 			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB,m_size, m_size, GL_RGB,GL_UNSIGNED_BYTE, total_texture);
 			
-		}else if(m_type == T_SKYBOX){
+		}else if(m_type == T_SKYBOX_TOP||m_type == T_SKYBOX_LEFT||m_type == T_SKYBOX_RIGHT||m_type == T_SKYBOX_FRONT||m_type == T_SKYBOX_BACK){
 			m_size = 512;
 			unsigned char total_texture [3 * m_size * m_size];
-			load_texture("otop6.jpg",GL_RGB,total_texture);
+			if(m_type == T_SKYBOX_TOP){
+				load_texture("otop19.jpg",GL_RGB,total_texture);
+			}else if(m_type == T_SKYBOX_LEFT){
+				load_texture("oleft19.jpg",GL_RGB,total_texture);
+			}else if(m_type == T_SKYBOX_RIGHT){
+				load_texture("oright19.jpg",GL_RGB,total_texture);
+			}else if(m_type == T_SKYBOX_FRONT){
+				load_texture("ofront19.jpg",GL_RGB,total_texture);
+			}else if(m_type == T_SKYBOX_BACK){
+				load_texture("oback19.jpg",GL_RGB,total_texture);
+			}
+			
 			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB,m_size, m_size, GL_RGB,GL_UNSIGNED_BYTE, total_texture);
 			
-		}else if(m_type == T_BUMP){
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}else if(m_type == T_GRASS_BUMP){
 			m_size = 512;
-
 			unsigned char colour_texture[3*m_size*m_size];
 			unsigned char bump_texture[3*m_size*m_size];
 
 			load_texture("Jungle Floor.jpg",GL_RGB,colour_texture);
-			load_texture("normal2.jpg",GL_RGB,bump_texture);
+			/*load_texture("normal2.jpg",GL_RGB,bump_texture);
+		
+			for (int i = 0; i < m_size * m_size; i++){
+				bump_texture[3*i] = (bump_texture[3*i]+colour_texture[3*i])/2;
+			  	bump_texture[3*i+1] = (bump_texture[3*i+1]+colour_texture[3*i+1])/2; 
+				bump_texture[3*i+2] = (bump_texture[3*i+2]+colour_texture[3*i+2])/2;	
+			}
+			*/
+			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB, m_size, m_size, GL_RGB, GL_UNSIGNED_BYTE, colour_texture);
+			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		}else if(m_type == T_SAND_BUMP){
+			m_size = 512;
+			unsigned char colour_texture[3*m_size*m_size];
+			unsigned char bump_texture[3*m_size*m_size];
+
+			load_texture("sand.jpg",GL_RGB,colour_texture);
+			load_texture("normal.jpg",GL_RGB,bump_texture);
 		
 			for (int i = 0; i < m_size * m_size; i++){
 				bump_texture[3*i] = (bump_texture[3*i]+colour_texture[3*i])/2;
@@ -125,18 +129,17 @@ void Texture::bind_texture(){
 				bump_texture[3*i+2] = (bump_texture[3*i+2]+colour_texture[3*i+2])/2;	
 			}
 			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB, m_size, m_size, GL_RGB, GL_UNSIGNED_BYTE, bump_texture);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
+		}else if(m_type == T_SNOW_BUMP){
+			m_size = 512;
+			unsigned char bump_texture[3*m_size*m_size];
+			load_texture("normal.jpg",GL_RGB,bump_texture);
+			gluBuild2DMipmaps (GL_TEXTURE_2D, GL_RGB, m_size, m_size, GL_RGB, GL_UNSIGNED_BYTE, bump_texture);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
 		}
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
-		//Texture mapping format
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		//Modulate format
-		
-
 		
 	}
+	glDisable(GL_TEXTURE_2D);
 }
 
 void Texture::apply_texture(){

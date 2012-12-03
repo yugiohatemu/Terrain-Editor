@@ -22,6 +22,10 @@ private:
 	Gtk::Menu m_menu_app;
 	Gtk::Menu m_menu_mode;
 	Gtk::Menu m_menu_light;
+	Gtk::Menu m_menu_size;
+	Gtk::Menu m_menu_environment;
+	Gtk::Menu m_menu_water;
+	Gtk::Menu m_menu_weather;
 	// The main OpenGL area
 	Viewer m_viewer;
 	

@@ -10,8 +10,6 @@
 #include "particle.hpp"
 #include "object.hpp"
 
-//hit name
-//how much x , y has moved
 struct joint_stack{
 	int name, x, y;
 	bool selected;
@@ -46,6 +44,7 @@ public:
 	SceneNode* root ;
 
   	void invalidate();
+	bool call_invalidate();
   	void reset_position();
 	void reset_orientation();
 	void reset_joint();
@@ -65,9 +64,16 @@ public:
 	
 	enum Light_Mode{
 		LIGHT_POSITION,
-		LIGHT_AMBIENT
+		LIGHT_REFLECTION,
+		LIGHT_SHADOW,
 	};
 	
+	enum Size{
+		SIZE_S = 51,
+		SIZE_M = 105,
+		SIZE_L = 201
+	};
+
 	void set_light_mode(Light_Mode l){
 		l_mode = l;
 	}
@@ -77,10 +83,36 @@ public:
 		ADD_CUBE
 	};
 	
+	enum Environment{
+		GRASS,
+		SAND,
+		SNOW
+	};
+
+	enum Water{
+		SLOW = 5,
+		MEDIUM = 10,
+		FAST = 15,
+	};
+
+	enum Weather{
+		W_NO,
+		W_RAIN,
+		W_SNOW
+	};
+
 	void set_add_mode(Light_Mode l){
-		l_mode = l;
+		if(l_mode != l){
+			l_mode = l;
+		}else{		
+			l_mode = LIHGT_POSITION;
+		}
+		
 	}
-	
+	void set_size(Size s);
+	void set_environment(Environment e);
+	void set_water(Water w);
+	void set_weather(Weather w);
 	void get_key_input(char input);
 	void set_light();
 protected:
@@ -98,23 +130,35 @@ protected:
 	void list_hits(GLint hits, GLuint *names);
 	
 	//Testing
-	void test();
+	void test();	
+	void draw_skybox();
 private:
 	
 	Game_Mode m_mode;
 	Light_Mode l_mode;
 	Add_Mode a_mode;
+	Size t_size;
+	Environment e_env;
+	Water w_water;
+	Weather w_weather;
 
 	HM m_map;
-	Texture marble;
-	Texture sky;
 	HM m_water;
-	Texture reflection;
-	Texture alpha;
-	
+
+	Texture t_grass;
+	Texture t_sand;
+	//Texture t_snow;	
+	Texture t_water;
+	Texture t_sky_top;
+	Texture t_sky_left;
+	Texture t_sky_right;
+	Texture t_sky_front;
+	Texture t_sky_back;
+	//Texture t_sand;
 	//Rain testing
 	Particle rain;
-
+	//Timer
+	sigc::connection m_timer;
 	//Add object testing
 	Scene m_scene;	
 

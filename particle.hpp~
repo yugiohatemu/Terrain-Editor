@@ -6,7 +6,7 @@
 #define CS488_PARTICLE_HPP
 
 #include "algebra.hpp"
-const int MAX_PARTICLE_COUNT = 100;
+const int MAX_PARTICLE_COUNT = 500;
 
 class Particle{
 public: 

@@ -6,8 +6,9 @@
 
 const double HEIGHT_LIMIT = 10.0;
 const double VALID_HEIGHT = 8.0;
-const double PARTICLE_HEIGHT = 0.5;
-const double SIZE_LIMIT = 10;
+const double PARTICLE_HEIGHT = 0.3;
+const double SNOW_HEIGHT = 0.1;
+const double SIZE_LIMIT = 20;
 const double SPEED = 0.3;
 
 Particle::Particle(){
@@ -51,15 +52,29 @@ void Particle::update_particle(){
 	}
 }
 
-void Particle::draw(){
+void Particle::draw_rain(){
 	//Only draw the visible particle rain if we draw snow , then use glut?
 	update_particle();	
-	glColor3d(0,0,0);
 	glBegin(GL_LINES);
 	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
 		
 		glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]);
 		glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]-PARTICLE_HEIGHT);
+		
+	}
+	glEnd();
+}
+
+void Particle::draw_snow(){
+	//Only draw the visible particle rain if we draw snow , then use glut?
+	update_particle();	
+	glBegin(GL_QUADS);
+	for(int i = 0;i<MAX_PARTICLE_COUNT;i+=1){
+		glNormal3d(0,1,1);
+		glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]+SNOW_HEIGHT);
+		glVertex3d(particle_array[i][0]+SNOW_HEIGHT,particle_array[i][1],particle_array[i][2]);
+		glVertex3d(particle_array[i][0],particle_array[i][1],particle_array[i][2]-SNOW_HEIGHT);
+		glVertex3d(particle_array[i][0]-SNOW_HEIGHT,particle_array[i][1],particle_array[i][2]);
 		
 	}
 	glEnd();

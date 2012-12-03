@@ -8,25 +8,10 @@
 const double MAX_DISPLACEMENT = 15.0;
 static int t = 0;
 HM::HM(){
+	map_size  = 251;
+	water_speed = 5;
+	reset();
 	
-	int offset =  (MAP_BOUND/2);
-	int low_bound= -offset;
-	int up_bound = 1 + offset;
-	
-	for(int i = low_bound;i<up_bound;i+=1){
-		for(int j = low_bound;j<up_bound;j+=1){
-			Point3D p(i,j,0);
-			height_map[i+offset][j+offset] = p;
-		}
-	}
-
-	//Initializing standard normal
-	
-	for(int i =0;i<MAP_BOUND-1;i+=1){ 
-		for(int j = 0;j<MAP_BOUND-1;j+=1){
-			normal_map[i][j][2] = 1;
-		}
-	}
 }
 
 
@@ -37,21 +22,20 @@ HM::~HM(){
 //Draw height map
 void HM::draw(){
 	draw_quad_list();
-	
 	//glCallList(OBJ_PLANE_GRID);
 	//glCallList(OBJ_PLANE_QUAD);
 }
 
 void HM::water_test(){
-	t+=1;
-	for(int i =0;i<MAP_BOUND;i+=1){ 
-		for(int j = 0;j<MAP_BOUND;j+=1){
-			 height_map[i][j][2] = cos((i+j+t)*5 * M_PI/180);
+	t=(t+1)%180;
+	for(int i =0;i<map_size;i+=1){ 
+		for(int j = 0;j<map_size;j+=1){
+			 height_map[i][j][2] = cos(((i+j)*5+t*water_speed) * M_PI/180);
 		}
 	}
 
-	for(int i =0;i<MAP_BOUND-1;i+=1){ 
-		for(int j = 0;j<MAP_BOUND-1;j+=1){
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
 			Vector3D x = height_map[i+1][j]-height_map[i][j] ;
 			Vector3D y = height_map[i+1][j+1] - height_map[i+1][j];
 			Vector3D n = x.cross(y);
@@ -63,14 +47,58 @@ void HM::water_test(){
 
 }
 
+bool HM::is_above_water(int water_level,int i, int j){
+	return (height_map[i][j][2]>water_level&&height_map[i+1][j][2]>=water_level&&height_map[i][j+1][2]>=water_level&&height_map[i+1][j+1][2]>=water_level);
+
+}
+
+
+void HM::draw_above_water(){
+	glBegin(GL_QUADS); 
+	
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
+			if(is_above_water(2,i,j)){
+				Vector3D n = normal_map[i][j];
+				glNormal3d(n[0],n[1],n[2]);
+				glTexCoord2d(0, 0);glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
+				glTexCoord2d(1, 0);glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
+				glTexCoord2d(1, 1);glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
+				glTexCoord2d(0, 1);glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
+			}
+			
+		}
+	}
+
+	glEnd();	
+}
+
+void HM::draw_below_water(){
+	glBegin(GL_QUADS); 
+	
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
+			if(!is_above_water(2,i,j)){
+				Vector3D n = normal_map[i][j];
+				glNormal3d(n[0],n[1],n[2]);
+				glTexCoord2d(0, 0);glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
+				glTexCoord2d(1, 0);glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
+				glTexCoord2d(1, 1);glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
+				glTexCoord2d(0, 1);glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
+			}
+		}
+	}
+
+	glEnd();	
+}
 
 
 //Generate a random map
 void HM::randomize(){
 	make_circle(50);
 	//Calculate the normal
-	for(int i =0;i<MAP_BOUND-1;i+=1){ 
-		for(int j = 0;j<MAP_BOUND-1;j+=1){
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
 			Vector3D x =  height_map[i+1][j]-height_map[i][j] ;
 			Vector3D y =  height_map[i+1][j+1] - height_map[i+1][j];
 			Vector3D n = x.cross(y);
@@ -86,9 +114,10 @@ void HM::draw_quad_list(){
 	    
 	glBegin(GL_QUADS); 
 	
-	for(int i =0;i<MAP_BOUND-1;i+=1){ 
-		for(int j = 0;j<MAP_BOUND-1;j+=1){
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
 			//Normal for lighting
+
 			Vector3D n = normal_map[i][j];
 			glNormal3d(n[0],n[1],n[2]);
 		
@@ -113,24 +142,24 @@ void HM::draw_grid_list(){
 	glBegin(GL_LINES);
 	
 	//vertical line
-	for(int i =0;i<MAP_BOUND;i+=1){ 
-		for(int j = 0;j<MAP_BOUND-1;j+=1){
+	for(int i =0;i<map_size;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
 			glVertex3d(height_map[i][j+1][0],height_map[i][j+1][1],height_map[i][j+1][2]);
 		}
 	}
 
 	//horizontal line
-	for(int i =0;i<MAP_BOUND-1;i+=1){ 
-		for(int j = 0;j<MAP_BOUND;j+=1){
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size;j+=1){
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
 			glVertex3d(height_map[i+1][j][0],height_map[i+1][j][1],height_map[i+1][j][2]);
 		}
 	}
 
 	//diagonal line
-	for(int i =0;i<MAP_BOUND-1;i+=1){ 
-		for(int j = 0;j<MAP_BOUND-1;j+=1){
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
 			glVertex3d(height_map[i][j][0],height_map[i][j][1],height_map[i][j][2]);
 			glVertex3d(height_map[i+1][j+1][0],height_map[i+1][j+1][1],height_map[i+1][j+1][2]);
 		}
@@ -148,14 +177,14 @@ int HM::make_rand(int range){
 void HM::make_circle(int round){
 	//Choose a random point from grid to be the circle center
 	for(int i = round;i>0;i-=1){	
-		Point3D center = height_map[make_rand(MAP_BOUND)][ make_rand(MAP_BOUND)];
+		Point3D center = height_map[make_rand(map_size)][ make_rand(map_size)];
 	
 		//Random radius
-		double radius =make_rand(MAP_BOUND/3)+1;
+		double radius =make_rand(map_size/3)+1;
 		double disp = get_displacement(i);
 
-		for(int x =0;x< MAP_BOUND ;x+=1){ 
-			for(int y = 0;y< MAP_BOUND ;y+=1){
+		for(int x =0;x< map_size ;x+=1){ 
+			for(int y = 0;y< map_size ;y+=1){
 				double dis = (height_map[x][y] - center).length();
 				double pd = dis*2/radius; 
 		
@@ -164,12 +193,13 @@ void HM::make_circle(int round){
 				}
 			}
 		}
+		smoothing();
 	}
-	smoothing();
+	
 }
 
 double HM::get_displacement(int round){
-	double disp = MAX_DISPLACEMENT- round * 0.1;
+	double disp = displacement- round * 0.1;
 	if(disp< 0.1){
 		disp = 0.1;
 	}
@@ -179,39 +209,85 @@ double HM::get_displacement(int round){
 void HM::smoothing(){
 	double k = 0.5;
 	//Left to right
-	for(int i = 1;i<MAP_BOUND;i+=1){
-		for(int j = 0;j<MAP_BOUND;j+=1){
+	for(int i = 1;i<map_size;i+=1){
+		for(int j = 0;j<map_size;j+=1){
 			height_map[i][j][2] = height_map[i+1][j][2]*(1-k) + height_map[i][j][2]*k;
 		}
 	}
 	//right to left
-	for(int i = MAP_BOUND-1;i>1;i-=1){
-		for(int j = 0;j<MAP_BOUND;j+=1){
+	for(int i = map_size-1;i>1;i-=1){
+		for(int j = 0;j<map_size;j+=1){
 			height_map[i][j][2] = height_map[i-1][j][2]*(1-k) + height_map[i][j][2]*k;
 		}
 	}
 	//bottom to top
-	for(int i = 0;i<MAP_BOUND;i+=1){
-		for(int j = 1;j<MAP_BOUND;j+=1){
+	for(int i = 0;i<map_size;i+=1){
+		for(int j = 1;j<map_size;j+=1){
 			height_map[i][j][2] = height_map[i][j+1][2]*(1-k) + height_map[i][j][2]*k;
 		}
 	}
 	//top to bottom
-	for(int i = 0;i<MAP_BOUND;i+=1){
-		for(int j = MAP_BOUND-1;j>1; j-=1){
+	for(int i = 0;i<map_size;i+=1){
+		for(int j = map_size-1;j>1; j-=1){
 			height_map[i][j][2] = height_map[i][j-1][2]*(1-k) + height_map[i][j][2]*k;
 		}
 	}
 }
 
 double HM::get_height(int x,int y){
-	x = x+MAP_BOUND/2 ;
+	x = x+map_size/2 ;
 	y = y+40;
-	if(x<0||y<0||x>=MAP_BOUND||y>=MAP_BOUND){
+	if(x<0||y<0||x>=map_size||y>=map_size){
 		return 0;
 	}
 	//std::cerr<<x<<" "<<y<<" "<<height_map[x][y][2]<<std::endl;
 	return height_map[x][y][2];
 }
 
+void HM::reset(){
+	int offset =  (MAP_BOUND/2);
+	int low_bound= -offset;
+	int up_bound = 1 + offset;
+	
+	for(int i = low_bound;i<up_bound;i+=1){
+		for(int j = low_bound;j<up_bound;j+=1){
+			Point3D p(i,j,0);
+			height_map[i+offset][j+offset] = p;
+		}
+	}
+	
+	for(int i =0;i<MAP_BOUND-1;i+=1){ 
+		for(int j = 0;j<MAP_BOUND-1;j+=1){
+			normal_map[i][j][2] = 1;
+		}
+	}
+	
+	displacement = make_rand(MAX_DISPLACEMENT)+1;
+	
+}
 
+void HM::set_size(int size){
+	map_size = size;
+}
+
+void HM::set_water_speed(int speed){
+	water_speed = speed;
+}
+/*int offset =  (map_size/2);
+	int low_bound= -offset;
+	int up_bound = 1 + offset;
+	
+	for(int i = low_bound;i<up_bound;i+=1){
+		for(int j = low_bound;j<up_bound;j+=1){
+			Point3D p(i,j,0);
+			height_map[i+offset][j+offset] = p;
+		}
+	}
+
+	//Initializing standard normal
+	
+	for(int i =0;i<map_size-1;i+=1){ 
+		for(int j = 0;j<map_size-1;j+=1){
+			normal_map[i][j][2] = 1;
+		}
+	}*/

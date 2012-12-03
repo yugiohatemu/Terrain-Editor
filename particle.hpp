@@ -12,7 +12,8 @@ class Particle{
 public: 
 	Particle();
 	~Particle();		
-	void draw();
+	void draw_rain();
+	void draw_snow();
 	void make_particle();
 private:
 	Point3D particle_array[MAX_PARTICLE_COUNT];
