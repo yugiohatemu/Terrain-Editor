@@ -7,9 +7,6 @@
 class AppWindow : public Gtk::Window {
 public:
   AppWindow();
- 	void set_root(SceneNode* r){
-		m_viewer.root = r;
-	}
 protected:
 	virtual bool on_key_press_event( GdkEventKey *ev );
 private:

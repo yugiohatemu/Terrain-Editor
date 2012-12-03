@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
   // Initialize OpenGL
   Gtk::GL::init(argc, argv);
-
+/*
   std::string filename = "puppet.lua";
   if (argc >= 2) {
     filename = argv[1];
@@ -22,10 +22,10 @@ int main(int argc, char** argv)
     std::cerr << "Could not open " << filename << std::endl;
     return 1;
   }
-  
+  */
   // Construct our (only) window
   AppWindow window;
-	window.set_root(root);
+ //window.set_root(root);
   // And run the application!
   Gtk::Main::run(window);
 }

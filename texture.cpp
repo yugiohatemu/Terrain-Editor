@@ -102,7 +102,7 @@ void Texture::bind_texture(){
 			load_texture("normal2.jpg",GL_RGB,bump_texture);
 		
 			for (int i = 0; i < m_size * m_size; i++){
-				bump_texture[3*i] = (bump_texture[3*i]+colour_texture[3*i])/2;
+				bump_texture[3*i] =(bump_texture[3*i]*colour_texture[3*i])/2;
 			  	bump_texture[3*i+1] = (bump_texture[3*i+1]+colour_texture[3*i+1])/2; 
 				bump_texture[3*i+2] = (bump_texture[3*i+2]+colour_texture[3*i+2])/2;	
 			}

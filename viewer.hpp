@@ -3,7 +3,7 @@
 
 #include <gtkmm.h>
 #include <gtkglmm.h>
-#include "scene_lua.hpp"
+//#include "scene_lua.hpp"
 #include <stack>
 #include "hm.hpp"
 #include "texture.hpp"
@@ -41,7 +41,7 @@ class Viewer : public Gtk::GL::DrawingArea {
 public:
   	Viewer();
   	virtual ~Viewer();
-	SceneNode* root ;
+	//SceneNode* root ;
 
   	void invalidate();
 	bool call_invalidate();
